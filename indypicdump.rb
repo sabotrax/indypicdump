@@ -10,9 +10,6 @@ require '/home/schommer/dev/indypicdump/ipdpicture'
 require '/home/schommer/dev/indypicdump/ipdtest'
 require '/home/schommer/dev/indypicdump/ipduser'
 
-# setup
-db = SQLite3::Database.new IPDConfig::DB
-
 switch = ARGV.shift
 if switch
   if switch != "test"
@@ -114,7 +111,7 @@ picstack.each do |pic|
    puts "Unable to save data for #{pic.filename} because #{e.message}"
   end
   # seems ok, so insert into db
-  db.execute("INSERT INTO picture (filename, time_taken, time_send, id_user) VALUES (?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user) VALUES (?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user])
   # delete tmp files 
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)

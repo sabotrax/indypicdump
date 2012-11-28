@@ -6,14 +6,11 @@ require "sqlite3"
 require '/home/schommer/dev/indypicdump/ipdconfig'
 require '/home/schommer/dev/indypicdump/ipdpicture'
 
-# setup
-db = SQLite3::Database.new IPDConfig::DB
-
 # PRODUCTION
-get '/picture/random' do
+#get '/picture/random' do
 # DEVELOPMENT
-#get '/ipd/picture/random' do
-  rnd_picture = db.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id where p.id != ? order by random() limit 1", IPDPicture.last_random_id)
+get '/ipd/picture/random' do
+  rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id where p.id != ? order by random() limit 1", IPDPicture.last_random_id)
   headers( "Access-Control-Allow-Origin" => "*" )
   IPDPicture.last_random_id = rnd_picture[0][0]
   tt = Time.at(rnd_picture[0][2])

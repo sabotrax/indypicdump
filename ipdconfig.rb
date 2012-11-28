@@ -1,6 +1,7 @@
 module IPDConfig
   # General
   DB = "/home/schommer/dev/indypicdump/horrible.db"
+  DB_HANDLE = SQLite3::Database.new IPDConfig::DB
   # Picture
   POP3_HOST = "pop.gmail.com"
   POP3_PORT = 995
