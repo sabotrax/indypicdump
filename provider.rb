@@ -6,6 +6,22 @@ require "sqlite3"
 require '/home/schommer/dev/indypicdump/ipdconfig'
 require '/home/schommer/dev/indypicdump/ipdpicture'
 
+##############################
+helpers do
+  def protected!
+    unless authorized?
+      response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
+      throw(:halt, [401, "Not authorized\n"])
+    end
+  end
+
+  def authorized?
+    @auth ||=  Rack::Auth::Basic::Request.new(request.env)
+    @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [IPDConfig::HTTP_AUTH_USER, IPDConfig::HTTP_AUTH_PASS]
+  end
+end
+
+##############################
 # PRODUCTION
 #get '/picture/random' do
 # DEVELOPMENT
@@ -23,4 +39,39 @@ get '/ipd/picture/random' do
     time_send: ts.strftime("%e.%m.%Y %H:%M"),
     nick: rnd_picture[0][4],
   }.to_json
+end
+
+##############################
+# this is ugly
+# TODO
+# - return json, not text
+# - reinitialize random pool
+# PRODUCTION
+#get '/picture/delete' do
+# DEVELOPMENT
+get '/ipd/picture/delete' do
+  protected!
+  # check params
+  if params.has_key?("f")
+    filename = params["f"]
+    return "FILENAME ERROR" if filename !~ /^\d+\.(\d+\.)?[A-Za-z]{1,4}$/
+  else
+    return "PARAMETER ERROR"
+  end
+  # check if picture exists
+  result = []
+  result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE filename = ?", [filename])
+  return "FILE NOT FOUND ERROR" if result.empty?
+  # delete
+  # TODO
+  # what'S a delete's return val?
+  IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [result[0][0]])
+  # TODO
+  # what if picture is served at this moment? retry?
+  begin
+    File.unlink(IPDConfig::PIC_DIR + "/" + filename)
+  rescue Exception => e
+    puts "Unable to unlink file #{filename} because #{e.message}"
+  end
+  return "DONE"
 end
