@@ -43,3 +43,7 @@
 # 7
 #require "./ipdconfig"
 #puts IPDConfig::POP3_USER
+
+# 8
+#require "./ipdpicture"
+#puts "nummer " + IPDPicture.get_random_id.to_s

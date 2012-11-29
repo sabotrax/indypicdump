@@ -9,6 +9,7 @@ module IPDConfig
   POP3_PASS = ""
   TMP_DIR = "/home/schommer/dev/indypicdump/tmp"
   PIC_DIR = "/home/schommer/dev/indypicdump/pics"
+  GEN_RANDOM_IDS = 100
   # User
   ADJECTIVES = "/home/schommer/dev/indypicdump/data/adjectives.txt"
   NOUNS = "/home/schommer/dev/indypicdump/data/nouns.txt"
