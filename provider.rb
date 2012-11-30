@@ -6,6 +6,9 @@ require "sqlite3"
 require '/home/schommer/dev/indypicdump/ipdconfig'
 require '/home/schommer/dev/indypicdump/ipdpicture'
 
+log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
+log.level = IPDConfig::LOG_LEVEL
+
 ##############################
 helpers do
   def protected!
@@ -27,7 +30,6 @@ end
 # DEVELOPMENT
 get '/ipd/picture/random' do
   random_id = IPDPicture.get_random_id
-  #puts "NEW RAND ID " + random_id.to_s
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
   headers( "Access-Control-Allow-Origin" => "*" )
   IPDPicture.last_random_id = rnd_picture[0][0]
@@ -64,14 +66,15 @@ get '/ipd/picture/delete' do
   return "FILE NOT FOUND ERROR" if result.empty?
   # delete
   # TODO
-  # what'S a delete's return val?
+  # what's a delete's return val?
   IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [result[0][0]])
   # TODO
   # what if picture is served at this moment? retry?
   begin
     File.unlink(IPDConfig::PIC_DIR + "/" + filename)
   rescue Exception => e
-    puts "Unable to unlink file #{filename} because #{e.message}"
+    log.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
   end
+  log.info("DELETE PICTURE #{filename} / #{request.ip} / #{request.user_agent}")
   return "DONE"
 end

@@ -5,10 +5,14 @@ require 'mail'
 require 'RMagick'
 require 'sqlite3'
 require 'date'
+require 'logger'
 require '/home/schommer/dev/indypicdump/ipdconfig'
 require '/home/schommer/dev/indypicdump/ipdpicture'
 require '/home/schommer/dev/indypicdump/ipdtest'
 require '/home/schommer/dev/indypicdump/ipduser'
+
+log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
+log.level = IPDConfig::LOG_LEVEL
 
 switch = ARGV.shift
 if switch
@@ -20,6 +24,7 @@ if switch
   end
 end
 
+##############################
 # get mail
 unless switch
   Mail.defaults do
@@ -38,10 +43,11 @@ else
   mail = []
   mail.push(IPDTest.gen_mail)
 end
-puts "MAILS " + mail.length.to_s
+log.info("MAILS #{mail.length}")
 
 picstack = []
 
+##############################
 # extract picture attachements
 
 mail.each do |m|
@@ -49,27 +55,23 @@ mail.each do |m|
     if (attachment.content_type.start_with?('image/'))
       # load or generate user
       email = m.from[0]
-      puts "SENDER " + email
       user = IPDUser.load(email)
+      log.info("SENDER #{email}")
       unless user
-	puts "NEW"
 	user = IPDUser.new
 	user.gen_nick
 	user.email = email
 	user.save
+	log.info("IS NEW USER \"#{user.nick}\"")
       end
-      puts "USER META"
-      puts user.inspect
       # generate unique filename
       filename = Time.now.to_f.to_s + File.extname(attachment.filename)
       pic = IPDPicture.new
       pic.filename = filename
       # we have no "date" in test mode
       if m.date
-	#puts "DATE FROM PIC"
 	pic.time_send = m.date.to_time.to_i
       else
-	#puts "FAKE DATE"
 	pic.time_send =  Time.now.to_i
       end
       pic.id_user = user.id
@@ -77,7 +79,7 @@ mail.each do |m|
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
       rescue Exception => e
-	puts "Unable to save data for #{filename} because #{e.message}"
+	log.fatal("FILE SAVE ERROR #{user.email} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
     # TODO
@@ -87,6 +89,7 @@ mail.each do |m|
   end
 end
 
+##############################
 # process pics
 
 picstack.each do |pic|
@@ -108,7 +111,7 @@ picstack.each do |pic|
   begin
    img.write(IPDConfig::PIC_DIR + "/" + pic.filename)
   rescue Exception => e
-   puts "Unable to save data for #{pic.filename} because #{e.message}"
+    log.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
   IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user) VALUES (?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user])
@@ -116,10 +119,9 @@ picstack.each do |pic|
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)
   rescue Exception => e
-    puts "Unable to unlink file #{pic.filename} because #{e.message}"
+    log.fatal("FILE DELETE ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
-  puts "PIC META"
-  puts pic.inspect
+  log.info("ADD PICTURE #{pic.filename}")
 end
 
-puts "----------"
+log.close

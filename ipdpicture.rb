@@ -1,7 +1,11 @@
 require "sqlite3"
+require "logger"
 require '/home/schommer/dev/indypicdump/ipdconfig'
 
 class IPDPicture
+  @@log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
+  @@log.level = IPDConfig::LOG_LEVEL
+
   @last_random_id = 0
   @random_pool = []
 
@@ -17,7 +21,7 @@ class IPDPicture
     require "random/online"
 
     if @random_pool.empty?
-      #puts "RANDOM POOL EMPTY"
+      @@log.info("RANDOM POOL EMPTY")
       # TODO
       # catch empty result error
       result = []

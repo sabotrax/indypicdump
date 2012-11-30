@@ -1,6 +1,10 @@
 require "sqlite3"
+require "logger"
 
 class IPDUser
+  @@log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
+  @@log.level = IPDConfig::LOG_LEVEL
+
   attr_accessor :id, :nick, :email, :time_created
 
   def self.load(email)
@@ -43,6 +47,8 @@ class IPDUser
   end
 
   def save
+    # TODO
+    # commit/rollback
     IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
     result = IPDConfig::DB_HANDLE.execute("SELECT id from user where nick = ?", [self.nick])
     self.id = result[0][0]
