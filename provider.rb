@@ -29,7 +29,7 @@ end
 #get '/picture/random' do
 # DEVELOPMENT
 get '/ipd/picture/random' do
-  random_id = IPDPicture.get_random_id
+  random_id = IPDPicture.get_smart_random_id(request)
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
   headers( "Access-Control-Allow-Origin" => "*" )
   IPDPicture.last_random_id = rnd_picture[0][0]

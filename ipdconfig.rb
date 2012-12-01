@@ -18,6 +18,8 @@ module IPDConfig
   TMP_DIR = "/home/schommer/dev/indypicdump/tmp"
   PIC_DIR = "/home/schommer/dev/indypicdump/pics"
   GEN_RANDOM_IDS = 100
+  NOSHOW_IDS = 5
+  CLIENT_TIMEOUT = 300
   # User
   ADJECTIVES = "/home/schommer/dev/indypicdump/data/adjectives.txt"
   NOUNS = "/home/schommer/dev/indypicdump/data/nouns.txt"

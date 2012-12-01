@@ -47,3 +47,8 @@
 # 8
 #require "./ipdpicture"
 #puts "nummer " + IPDPicture.get_random_id.to_s
+
+# 9
+#require "digest"
+#puts Digest::RMD160::hexdigest("aljdbhgbsd,jnsd,fnsf,dfnsd,mfnsdf,mdsnf,dsf")
+#puts Digest::SHA256::hexdigest("aljdbhgbsd,jnsd,fnsf,dfnsd,mfnsdf,mdsnf,dsf")
