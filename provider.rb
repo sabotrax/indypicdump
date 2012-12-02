@@ -1,5 +1,22 @@
 #!/usr/bin/ruby -w
 
+# This file is part of indypicdump.
+
+# Foobar is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# Foobar is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+
+# Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
+
 require "sinatra"
 require "json"
 require "sqlite3"
@@ -32,7 +49,6 @@ get '/ipd/picture/random' do
   random_id = IPDPicture.get_smart_random_id(request)
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
   headers( "Access-Control-Allow-Origin" => "*" )
-  IPDPicture.last_random_id = rnd_picture[0][0]
   tt = Time.at(rnd_picture[0][2])
   ts = Time.at(rnd_picture[0][3])
   {
