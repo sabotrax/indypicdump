@@ -32,6 +32,7 @@ module IPDConfig
   POP3_PORT = 995
   POP3_USER = ""
   POP3_PASS = ""
+  FETCH_MAILS = 5
   TMP_DIR = "/home/schommer/dev/indypicdump/tmp"
   PIC_DIR = "/home/schommer/dev/indypicdump/pics"
   GEN_RANDOM_IDS = 100

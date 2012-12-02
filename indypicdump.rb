@@ -17,7 +17,6 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-require 'rubygems'
 require 'mail'
 require 'RMagick'
 require 'sqlite3'
@@ -55,12 +54,14 @@ unless switch
 end
 
 unless switch
-  mail = Mail.all
+  # TODO
+  # is "asc" newest or oldest first? should be oldest
+  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
 end
-log.info("MAILS #{mail.length}")
+log.info("MAILS #{mail.length}/#{IPDConfig::FETCH_MAILS}")
 
 picstack = []
 
@@ -71,7 +72,9 @@ mail.each do |m|
   m.attachments.each do | attachment |
     if (attachment.content_type.start_with?('image/'))
       # load or generate user
-      email = m.from[0]
+      # CAUTION
+      # "downcase" only works in the ASCII region
+      email = m.from[0].downcase
       user = IPDUser.load(email)
       log.info("SENDER #{email}")
       unless user
