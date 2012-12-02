@@ -1,5 +1,6 @@
 *.db
 *.log
+log/
 pics/
 test/
 pics

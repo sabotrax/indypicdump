@@ -236,7 +236,6 @@ butter
 cast
 cave
 cent
-cherries
 cherry
 cobweb
 coil
@@ -255,7 +254,6 @@ goose
 grain
 hair
 haircut
-hobbies
 holiday
 hot
 jellyfish
@@ -455,7 +453,6 @@ wrist
 writer
 account
 achiever
-acoustics
 act
 action
 activity
@@ -522,7 +519,6 @@ bead
 beam
 bean
 bear
-bears
 beast
 bed
 bedroom
@@ -536,12 +532,9 @@ behavior
 belief
 believe
 bell
-bells
 berry
 bike
-bikes
 bird
-birds
 birth
 birthday
 bit
@@ -551,19 +544,16 @@ blood
 blow
 board
 boat
-boats
 body
 bomb
 bone
 book
-books
 boot
 border
 bottle
 boundary
 box
 boy
-boys
 brain
 brake
 branch
@@ -574,7 +564,6 @@ breath
 brick
 bridge
 brother
-brothers
 brush
 bubble
 bucket
@@ -583,7 +572,6 @@ bulb
 bun
 burn
 burst
-bushes
 business
 butter
 button
@@ -591,7 +579,6 @@ cabbage
 cable
 cactus
 cake
-cakes
 calculator
 calendar
 camera
@@ -606,11 +593,9 @@ card
 care
 carpenter
 carriage
-cars
 cart
 cast
 cat
-cats
 cattle
 cause
 cave
@@ -620,17 +605,14 @@ cemetery
 cent
 chain
 chair
-chairs
 chalk
 chance
 change
 channel
 cheese
-cherries
 cherry
 chess
 chicken
-chickens
 children
 chin
 church
@@ -638,10 +620,8 @@ circle
 clam
 class
 clock
-clocks
 cloth
 cloud
-clouds
 clover
 club
 coach
@@ -711,7 +691,7 @@ development
 digestion
 dime
 dinner
-dinosaurs
+dinosaur
 direction
 dirt
 discovery
@@ -739,7 +719,6 @@ drop
 drug
 drum
 duck
-ducks
 dust
 ear
 earth
@@ -762,7 +741,6 @@ expansion
 experience
 expert
 eye
-eyes
 face
 fact
 fairies
@@ -785,7 +763,6 @@ field
 fifth
 fight
 finger
-finger
 fire
 fireman
 fish
@@ -797,7 +774,6 @@ flight
 flock
 floor
 flower
-flowers
 fly
 fog
 fold
@@ -810,9 +786,7 @@ fowl
 frame
 friction
 friend
-friends
 frog
-frogs
 front
 fruit
 fuel
@@ -823,7 +797,7 @@ garden
 gate
 geese
 ghost
-giants
+giant
 giraffe
 girl
 girls
@@ -855,7 +829,6 @@ haircut
 hall
 hammer
 hand
-hands
 harbor
 harmony
 hat
@@ -869,7 +842,7 @@ help
 hen
 hill
 history
-hobbies
+hobby
 hole
 holiday
 home
@@ -878,15 +851,13 @@ hook
 hope
 horn
 horse
-horses
 hose
 hospital
 hot
 hour
 house
-houses
 humor
-hydrant	I
+hydrant
 ice
 icicle
 idea
@@ -921,7 +892,6 @@ kick
 kiss
 kite
 kitten
-kittens
 kitty
 knee
 knife
@@ -943,7 +913,6 @@ leather
 leg
 legs
 letter
-letters
 lettuce
 level
 library
@@ -955,7 +924,7 @@ linen
 lip
 liquid
 list
-lizards
+lizard
 loaf
 lock
 locket
@@ -1128,7 +1097,6 @@ quilt
 quince
 quiver 
 rabbit
-rabbits
 rail
 railway
 rain
@@ -1157,7 +1125,6 @@ rice
 riddle
 rifle
 ring
-rings
 river
 road
 robin
@@ -1183,7 +1150,7 @@ scene
 scent
 school
 science
-scissors
+scissor
 screw
 sea
 seashore
@@ -1205,7 +1172,6 @@ ship
 shirt
 shock
 shoe
-shoes
 shop
 show
 side
@@ -1215,7 +1181,6 @@ silk
 silver
 sink
 sister
-sisters
 size
 skate
 skin
@@ -1231,9 +1196,7 @@ smell
 smile
 smoke
 snail
-snails
 snake
-snakes
 sneeze
 snow
 soap
@@ -1243,14 +1206,13 @@ soda
 sofa
 son
 song
-songs
 sort
 sound
 soup
 space
 spade
 spark
-spiders
+spider
 sponge
 spoon
 spot
@@ -1270,7 +1232,6 @@ stem
 step
 stew
 stick
-sticks
 stitch
 stocking
 stomach
@@ -1315,7 +1276,6 @@ test
 texture
 theory
 thing
-things
 thought
 thread
 thrill
@@ -1331,7 +1291,7 @@ title
 toad
 toe
 toes
-tomatoes
+tomato
 tongue
 tooth
 toothbrush
@@ -1340,11 +1300,9 @@ top
 touch
 town
 toy
-toys
 trade
 trail
 train
-trains
 tramp
 transport
 tray
@@ -1354,9 +1312,8 @@ trees
 trick
 trip
 trouble
-trousers
+trouser
 truck
-trucks
 tub
 turkey
 turn
@@ -1391,7 +1348,6 @@ waste
 watch
 water
 wave
-waves
 wax
 way
 wealth
