@@ -19,11 +19,16 @@ require "mail"
 
 class IPDTest
   def self.gen_mail
-    Mail.new do
+    Mail.defaults do
+      delivery_method :test
+    end
+    mail = Mail.new do
       from	"Marcus <coMFi@indypicdump.com>"
       to	"receiver@indypicdump.com"
       subject	"this is a test"
       add_file 	"test/golden_gate_test.jpg"
     end
+    mail.deliver
+    Mail::TestMailer.deliveries.first
   end
 end

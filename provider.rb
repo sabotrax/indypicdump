@@ -55,6 +55,7 @@ get '/ipd/picture/random' do
   time_send = rnd_picture[0][3]
   if time_taken > time_send
     time_taken -= 3600
+    log.warn("TIME_TAKEN > TIME_SEND WARNING ID #{rnd_picture[0][0]}")
   end
   tt = Time.at(time_taken)
   ts = Time.at(time_send)

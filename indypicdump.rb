@@ -88,12 +88,7 @@ mail.each do |m|
       filename = Time.now.to_f.to_s + File.extname(attachment.filename)
       pic = IPDPicture.new
       pic.filename = filename
-      # we have no "date" in test mode
-      if m.date
-	pic.time_send = m.date.to_time.to_i
-      else
-	pic.time_send =  Time.now.to_i
-      end
+      pic.time_send = m.date.to_time.to_i
       pic.id_user = user.id
       picstack.push(pic)
       begin
@@ -102,8 +97,6 @@ mail.each do |m|
 	log.fatal("FILE SAVE ERROR #{user.email} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
-    # TODO
-    # test
     # only one pic per mail
     break
   end
@@ -116,10 +109,15 @@ picstack.each do |pic|
   # autoorient
   img = Magick::Image::read(IPDConfig::TMP_DIR + "/" + pic.filename).first
   img.auto_orient!
-  # read exif DateTime
+  # read EXIF DateTime
+  # EXIF DateTime is local time w/o time zone information
   date = img.get_exif_by_entry('DateTime')[0][1]
   if date
-    pic.time_taken = DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time.to_i
+    # CAUTION
+    # DateTime.to_time applies the local time zone
+    # so we subtract the time zone offset from it
+    time_taken = DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time
+    pic.time_taken = time_taken.to_i - time_taken.gmt_offset
   end
   # resize
   if img.columns >= img.rows and img.columns > 800
