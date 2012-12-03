@@ -49,8 +49,15 @@ get '/ipd/picture/random' do
   random_id = IPDPicture.get_smart_random_id(request)
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
   headers( "Access-Control-Allow-Origin" => "*" )
-  tt = Time.at(rnd_picture[0][2])
-  ts = Time.at(rnd_picture[0][3])
+  # CAUTION
+  # this is a workaround for a time zone problem with "time_taken"
+  time_taken = rnd_picture[0][2]
+  time_send = rnd_picture[0][3]
+  if time_taken > time_send
+    time_taken -= 3600
+  end
+  tt = Time.at(time_taken)
+  ts = Time.at(time_send)
   {
     filename: rnd_picture[0][1],
     time_taken: tt.strftime("%e.%m.%Y %H:%M"),
