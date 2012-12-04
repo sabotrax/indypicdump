@@ -2,32 +2,59 @@
   <head>
     <meta charset="utf-8" />
     <meta HTTP-EQUIV="refresh" CONTENT="15">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
-    <link rel='stylesheet' href='css/all.css' type='text/css' media='all' />
+    <link rel="stylesheet" media="screen and (max-device-width: 900px)" href="css/mobile.css" />
+    <link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="css/mobile.css" />
+    <link rel='stylesheet' href='css/all.css' />
     <title>indypicdump</title>
     <script language="JavaScript">
     <!--
     function httpGet(theUrl)
     {
-    var xmlHttp = null;
+      var xmlHttp = null;
 
-    xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false );
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
+      xmlHttp = new XMLHttpRequest();
+      xmlHttp.open( "GET", theUrl, false );
+      xmlHttp.send( null );
+      return xmlHttp.responseText;
     }
+
     function load()
     {
-    // PRODUCTION
-    //var ret = httpGet("/indypicdump/picture/random")
-    // DEVELOPEMENT
-    var ret = httpGet("http://localhost:4567/ipd/picture/random")
-    var obj = eval ("(" + ret + ")");
-    document.getElementById('image').src = "pics/" + obj.filename;
-    document.getElementById('nick').innerHTML = obj.nick;
-    document.getElementById('time_taken').innerHTML = obj.time_taken;
-    document.getElementById('time_send').innerHTML = obj.time_send;
+      // PRODUCTION
+      //var ret = httpGet("/indypicdump/picture/random")
+      // DEVELOPEMENT
+      var ret = httpGet("http://localhost:4567/ipd/picture/random")
+      var obj = eval ("(" + ret + ")");
+      document.getElementById('image').src = "pics/" + obj.filename;
+      document.getElementById('nick').innerHTML = obj.nick;
+      document.getElementById('time_taken').innerHTML = obj.time_taken;
+      document.getElementById('time_send').innerHTML = obj.time_send;
     }
+
+    // fix for the viewport scaling bug
+    (function(doc)
+    {
+      var addEvent = 'addEventListener',
+	type = 'gesturestart',
+	qsa = 'querySelectorAll',
+	scales = [1, 5],
+	meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
+    
+      function fix()
+      {
+	meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
+	doc.removeEventListener(type, fix, true);
+      }
+    
+      if ((meta = meta[meta.length - 1]) && addEvent in doc)
+      {
+	fix();
+	scales = [.25, 1.6];
+	doc[addEvent](type, fix, true);
+      }
+    }(document));
     //-->
     </script>
   </head>
