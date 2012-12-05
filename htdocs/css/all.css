@@ -12,12 +12,6 @@ img {
   border: 1px solid #859CE6;
 }
 
-p {
-  font-family: 'Inconsolata', sans-serif;
-  /* color: #E18728; */
-  color: #859CE6;
-}
-
 #Content {
   width: 800px;
   margin: 0px auto; /* Right and left margin widths set to "auto" */
@@ -26,4 +20,5 @@ p {
   border: 0px;
   font-family: 'Inconsolata', sans-serif;
   color: #859CE6;
+  /* color: #E18728; */
 }

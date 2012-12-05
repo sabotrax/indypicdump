@@ -1,23 +1,22 @@
 # This file is part of indypicdump.
 
-# Foobar is free software: you can redistribute it and/or modify
+# indypicdump is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 
-# Foobar is distributed in the hope that it will be useful,
+# indypicdump is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 
 # You should have received a copy of the GNU General Public License
-# along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+# along with indypicdump.  If not, see <http://www.gnu.org/licenses/>.
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-require "sqlite3"
-require "logger"
-require '/home/schommer/dev/indypicdump/ipdconfig'
+require 'sqlite3'
+require 'logger'
 
 class IPDPicture
   @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
@@ -61,7 +60,7 @@ class IPDPicture
 
   ##############################
   # - generate smart random ids
-  # so that the last IPDConfig::NOSHOW_LAST_IDS won't be drawn again
+  # so the last IPDConfig::NOSHOW_LAST_IDS won't be drawn again
   # - this works per client with a IPDConfig::CLIENT_TIMEOUT second timeout 
   # 
   # request = sinatra request object
