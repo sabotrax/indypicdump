@@ -1,7 +1,6 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta HTTP-EQUIV="refresh" CONTENT="15">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" media="screen and (max-device-width: 900px)" href="css/mobile.css" />
@@ -10,29 +9,6 @@
     <title>indypicdump</title>
     <script language="JavaScript">
     <!--
-    function httpGet(theUrl)
-    {
-      var xmlHttp = null;
-
-      xmlHttp = new XMLHttpRequest();
-      xmlHttp.open( "GET", theUrl, false );
-      xmlHttp.send( null );
-      return xmlHttp.responseText;
-    }
-
-    function load()
-    {
-      // PRODUCTION
-      //var ret = httpGet("/indypicdump/picture/random")
-      // DEVELOPEMENT
-      var ret = httpGet("http://localhost:4567/ipd/picture/random")
-      var obj = eval ("(" + ret + ")");
-      document.getElementById('image').src = "pics/" + obj.filename;
-      document.getElementById('nick').innerHTML = obj.nick;
-      document.getElementById('time_taken').innerHTML = obj.time_taken;
-      document.getElementById('time_send').innerHTML = obj.time_send;
-    }
-
     // fix for the viewport scaling bug
     (function(doc)
     {
@@ -58,11 +34,12 @@
     //-->
     </script>
   </head>
-  <body onload="load()">
+  <body>
     <div id="Content">
-    * <span id="time_taken"></span> &#9993; <span id="time_send"></span> by <span id="nick"></span><br />
-    <img src="" id="image" name="image"><br />
-    &hearts; <a href="about.html">indypicdump</a>
+    About indypicdump.<br>
+    <p>indypicdump is a picture server for a small group of people in Germany.</p>
+    <p>It started as a fun project on an <a href="http://en.wikipedia.org/wiki/SGI_Indy">SGI Indy</a>, hence the name. It is now running on an <a href="http://en.wikipedia.org/wiki/SGI_Octane">Octane</a>. That's a lie, but wouldn't it be nice?</p>
+    <p>You can look at the <a href="https://code.google.com/p/indypicdump/source/browse/">sources</a> or <a href="mailto:sabotrax@gmail.com">write me</a>.</p>
     </div>
   </body>
 </html>

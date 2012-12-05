@@ -48,9 +48,7 @@ class IPDPicture
       rescue Exception => e
 	@log.error("RANDOM NUMBER FETCH ERROR #{e}")
 	@log.info("USING RANDOM NUMBER FALLBACK GENERATOR")
-	for i in 1..IPDConfig::GEN_RANDOM_IDS
-	  randnum.push(rand(result[0][0]))
-	end
+	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       
       @random_pool = randnum
