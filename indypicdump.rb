@@ -32,6 +32,8 @@ require 'ipduser'
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
 
+# TODO
+# turn switch to symbol
 switch = ARGV.shift
 if switch
   if switch != "test"
@@ -80,7 +82,9 @@ mail.each do |m|
 	# TODO
 	# inform existing users
 	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
-	next
+	# CAUTION
+	# we ignore duplicates in test mode
+	next unless switch
       end
 
       # load or generate user
@@ -125,7 +129,7 @@ picstack.each do |pic|
   # read EXIF DateTime
   # EXIF DateTime is local time w/o time zone information
   date = img.get_exif_by_entry('DateTime')[0][1]
-  if date
+  if date =~ /^\d{4}:\d\d:\d\d \d\d:\d\d:\d\d$/
     # CAUTION
     # DateTime.to_time applies the local time zone
     # so we subtract the time zone offset from it

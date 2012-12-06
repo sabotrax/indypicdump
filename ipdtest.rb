@@ -27,6 +27,7 @@ class IPDTest
       to	"receiver@indypicdump.com"
       subject	"this is a test"
       add_file 	"test/golden_gate_test.jpg"
+      #add_file 	"test/fountain_test_w_exif_date_broken.jpg"
     end
     mail.deliver
     Mail::TestMailer.deliveries.first
