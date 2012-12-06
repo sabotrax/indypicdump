@@ -73,6 +73,16 @@ picstack = []
 mail.each do |m|
   m.attachments.each do | attachment |
     if (attachment.content_type.start_with?('image/'))
+      # check for duplicates
+      pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
+      result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
+      unless result.empty?
+	# TODO
+	# inform existing users
+	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
+	next
+      end
+
       # load or generate user
       # CAUTION
       # "downcase" only works in the ASCII region
@@ -92,6 +102,7 @@ mail.each do |m|
       pic.filename = filename
       pic.time_send = m.date.to_time.to_i
       pic.id_user = user.id
+      pic.original_hash = pic_hash
       picstack.push(pic)
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
@@ -134,7 +145,7 @@ picstack.each do |pic|
     log.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user) VALUES (?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash) VALUES (?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash])
   # delete tmp files 
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)

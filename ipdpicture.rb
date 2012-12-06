@@ -117,12 +117,13 @@ class IPDPicture
     return random_id
   end
 
-  attr_accessor :filename, :time_taken, :time_send, :id_user
+  attr_accessor :filename, :time_taken, :time_send, :id_user, :original_hash
 
   def initialize
     @filename = ""
     @time_taken = 0
     @time_send = 0
     @id_user = 0
+    @original_hash = ""
   end
 end
