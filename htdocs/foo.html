@@ -4,6 +4,8 @@
     <meta HTTP-EQUIV="refresh" CONTENT="15">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
+    <link rel="shortcut icon" href="sitepics/favicon.ico" />
+    <link rel="apple-touch-icon" href="sitepics/apple-touch-icon.png" />
     <link rel="stylesheet" media="screen and (max-device-width: 900px)" href="css/mobile.css" />
     <link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="css/mobile.css" />
     <link rel='stylesheet' href='css/all.css' />
@@ -25,7 +27,7 @@
       // PRODUCTION
       //var ret = httpGet("/indypicdump/picture/random")
       // DEVELOPEMENT
-      var ret = httpGet("http://localhost:4567/ipd/picture/random")
+      var ret = httpGet("http://172.16.2.187:4567/ipd/picture/random")
       var obj = eval ("(" + ret + ")");
       document.getElementById('image').src = "pics/" + obj.filename;
       document.getElementById('nick').innerHTML = obj.nick;
@@ -62,7 +64,7 @@
     <div id="Content">
     * <span id="time_taken"></span> &#9993; <span id="time_send"></span> by <span id="nick"></span><br />
     <img src="" id="image" name="image"><br />
-    &hearts; <a href="about.html">indypicdump</a>
+    &hearts; <a href="about.html" id="landing">indypicdump</a>
     </div>
   </body>
 </html>
