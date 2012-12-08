@@ -32,4 +32,20 @@ class IPDTest
     mail.deliver
     Mail::TestMailer.deliveries.first
   end
+
+  def self.random_distribution(le, arr)
+    count = {}
+    arr.each do |i|
+      if count.has_key?(i)
+	count[i] += 1
+      else
+	count[i] = 0
+      end
+    end
+    percent = {}
+    count.each_key do |k|
+      percent[k] = (count[k].to_f / le.to_f).to_f * 100
+    end
+    return percent
+  end
 end

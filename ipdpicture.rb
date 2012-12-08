@@ -25,6 +25,7 @@ class IPDPicture
   @random_pool = []
   @clients = {}
 
+  ##############################
   def self.get_random_id
     require "random/online"
 
@@ -34,7 +35,6 @@ class IPDPicture
       # catch empty result error
       result = []
       result = IPDConfig::DB_HANDLE.execute("SELECT count(*) FROM picture")
-      #puts "COUNT PICTURES " + result[0][0].to_s
 
       randnum = []
       begin
@@ -55,6 +55,60 @@ class IPDPicture
     end
     @random_pool.shift
   end
+
+  ##############################
+  def self.get_weighted_random_id
+    require "random/online"
+    require "./ipdtest"
+
+    if @random_pool.empty?
+      @log.info("RANDOM POOL EMPTY")
+      # TODO
+      # catch empty result error
+      result = []
+      result = IPDConfig::DB_HANDLE.execute("SELECT count(*) FROM picture")
+      max_offset = result[0][0]
+
+      randnum = []
+      begin
+	generator = RealRand::RandomOrg.new
+	# TODO
+	# - check if result[0][0] - 1 is member of random array
+	# as in core rand(max) -> max is never reached
+	randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
+      # TODO
+      # retry? (The Ruby Programming Language, 162)
+      rescue Exception => e
+	@log.error("RANDOM NUMBER FETCH ERROR #{e}")
+	@log.info("USING RANDOM NUMBER FALLBACK GENERATOR")
+	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
+      end
+      
+      #puts IPDTest.random_distribution(1000, randnum)
+
+      # show newer pics more often
+      span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
+      # get new pictures
+      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [span])
+      result.each do |row|
+	offset = row[0]
+	# create random positions for later injection
+	weighted = []
+	(1..(IPDConfig::GEN_RANDOM_IDS / max_offset * IPDConfig::PICTURE_DISPLAY_MOD)).each do
+	  weighted.push(rand(max_offset))
+	end
+	# merge
+	weighted.each do |p|
+	  randnum.insert(p, offset)
+	end
+      end
+      #puts IPDTest.random_distribution(1000, randnum)
+
+      @random_pool = randnum
+    end
+    @random_pool.shift
+  end
+
 
   ##############################
   # - generate smart random ids
@@ -84,7 +138,8 @@ class IPDPicture
 
       # find non-sequential id
       while true do
-	random_id = self.get_random_id
+	#random_id = self.get_random_id
+	random_id = self.get_weighted_random_id
 	if @clients.has_key?(key)
 	  if @clients[key][:ids].include?(random_id)
 	    if i == IPDConfig::NOSHOW_LAST_IDS - 1

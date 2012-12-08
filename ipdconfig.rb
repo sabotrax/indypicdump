@@ -36,9 +36,11 @@ module IPDConfig
   FETCH_MAILS = 5
   TMP_DIR = PATH + '/tmp'
   PIC_DIR = PATH + '/pics'
-  GEN_RANDOM_IDS = 100
-  NOSHOW_LAST_IDS = 5
+  GEN_RANDOM_IDS = 200
+  NOSHOW_LAST_IDS = 8
   CLIENT_TIMEOUT = 300
+  PICTURE_DISPLAY_MOD_SPAN = 86000
+  PICTURE_DISPLAY_MOD = 0.5
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
