@@ -94,8 +94,8 @@ class IPDPicture
 	offset = row[0]
 	# create random positions for later injection
 	weighted = []
-	(1..(IPDConfig::GEN_RANDOM_IDS / max_offset * IPDConfig::PICTURE_DISPLAY_MOD)).each do
-	  weighted.push(rand(max_offset))
+	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD)).each do
+	  weighted.push(rand(randnum.length))
 	end
 	# merge
 	weighted.each do |p|

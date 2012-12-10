@@ -26,7 +26,8 @@ class IPDTest
       from	"Marcus <backflip@indypicdump.com>"
       to	"receiver@indypicdump.com"
       subject	"this is a test"
-      add_file 	"test/golden_gate_test.jpg"
+      add_file 	"test/computer_test.jpg"
+      #add_file 	"test/golden_gate_test.jpg"
       #add_file 	"test/fountain_test_w_exif_date_broken.jpg"
     end
     mail.deliver

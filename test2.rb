@@ -3,9 +3,10 @@
 require 'sqlite3'
 require './ipdconfig'
 
-rn = 1000000
+rn = 200
 max = 25
-more = 0.5 # %
+span = 86400
+more = 0.05 # %
 
 # create random array
 a = []
@@ -32,7 +33,7 @@ end
 puts "VERTEILUNG URSPRUNG"
 puts x.to_s
 
-yd = Time.now.to_i - 200000
+yd = Time.now.to_i - span
 result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [yd])
 #puts result.to_s
 
@@ -42,8 +43,10 @@ puts "#{o} DAZU"
 
 # second array menge
 a2 = []
-(1..(rn / max * more)).each do |i|
-  a2.push(rand(max))
+#(1..(rn / max * more)).each do |i|
+(1..(rn * more)).each do |i|
+  #a2.push(rand(max))
+  a2.push(rand(a.length))
 end
 #puts "OEFTER ZU ZEIGEND AN POSITIONEN"
 #puts a2.to_s
@@ -72,6 +75,16 @@ r.each_key do |k|
 end
 puts "VERTEILUNG NACH MERGE"
 puts x.to_s
+
+s = ""
+a.each do |i|
+  if i == 24
+    s += "+"
+  else
+    s += "."
+  end
+end
+puts s
 
 #puts "INHALT NACH MERGE"
 #puts a.to_s
