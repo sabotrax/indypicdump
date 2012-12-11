@@ -24,6 +24,7 @@ require 'json'
 require 'sqlite3'
 require 'ipdconfig'
 require 'ipdpicture'
+require 'ipdmessage'
 
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
@@ -103,4 +104,14 @@ get '/ipd/picture/delete' do
   end
   log.info("DELETE PICTURE #{filename} / #{request.ip} / #{request.user_agent}")
   return "DONE"
+end
+
+##############################
+get '/ipd/user/show/:id_user' do
+  result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
+  msgs = []
+  result.each do |row|
+    msgs.push(IPDConfig::MSG[row[1]], row[2])
+  end
+  msgs.to_json
 end

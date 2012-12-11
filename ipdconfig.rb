@@ -44,4 +44,10 @@ module IPDConfig
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
+  # Message
+  MSG_SHOWN_SPAN = 604800
+  MSG = {
+    1 => "You sent a duplicate picture",
+  }
+  MSG_DUPLICATE_PIC = 1
 end

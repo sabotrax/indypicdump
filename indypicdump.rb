@@ -28,6 +28,7 @@ require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdtest'
 require 'ipduser'
+require 'ipdmessage'
 
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
@@ -75,24 +76,28 @@ picstack = []
 mail.each do |m|
   m.attachments.each do | attachment |
     if (attachment.content_type.start_with?('image/'))
-      # check for duplicates
+      # load user
+      # CAUTION
+      # "downcase" only works in the ASCII region
+      email = m.from[0].downcase
+      user = IPDUser.load(email)
+      # check for duplicate pictures
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
       result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
       unless result.empty?
-	# TODO
 	# inform existing users
+	msg = IPDMessage.new
+	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
+	msg.time_created = m.date.to_time.to_i
+	msg.id_user = user.id
+	msg.save
 	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
 	# CAUTION
 	# we ignore duplicates in test mode
 	next unless switch
       end
-
-      # load or generate user
-      # CAUTION
-      # "downcase" only works in the ASCII region
-      email = m.from[0].downcase
-      user = IPDUser.load(email)
       log.info("SENDER #{email}")
+      # create new user
       unless user
 	user = IPDUser.new
 	user.gen_nick
