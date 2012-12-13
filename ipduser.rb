@@ -22,16 +22,29 @@ class IPDUser
   @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
   @log.level = IPDConfig::LOG_LEVEL
 
-  attr_accessor :id, :nick, :email, :time_created
+  attr_accessor :id, :nick, :email, :time_created, :posts
 
   def self.load(email)
     found = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [email])
-    user = self.new
-    unless found.empty?
+    if found.any?
+      user = self.new
       user.id = found[0][0]
       user.nick = found[0][1]
       user.time_created = found[0][2]
       user.email = email
+    else
+      user = nil
+    end
+    return user
+  end
+
+  def self.load_by_id(id)
+    found = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [id])
+    if found.any?
+      user = self.new
+      user.id = found[0][0]
+      user.nick = found[0][1]
+      user.time_created = found[0][2]
     else
       user = nil
     end
@@ -43,6 +56,7 @@ class IPDUser
     @nick = ""
     @email = ""
     @time_created = Time.now.to_i
+    @posts = 0
   end
 
   def gen_nick

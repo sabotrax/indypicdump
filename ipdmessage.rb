@@ -33,4 +33,3 @@ class IPDMessage
     IPDConfig::DB_HANDLE.execute("INSERT INTO message (message_id, time_created, id_user) VALUES (?, ?, ?)", [self.message_id, self.time_created, self.id_user])
   end
 end
-

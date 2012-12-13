@@ -47,7 +47,7 @@ module IPDConfig
   # Message
   MSG_SHOWN_SPAN = 604800
   MSG = {
-    1 => "You sent a duplicate picture",
+    1 => "you sent a duplicate picture",
   }
   MSG_DUPLICATE_PIC = 1
 end

@@ -22,9 +22,11 @@ $:.unshift("/home/schommer/dev/indypicdump")
 require 'sinatra'
 require 'json'
 require 'sqlite3'
+require 'slim'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
+require 'ipduser'
 
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
@@ -107,11 +109,20 @@ get '/ipd/picture/delete' do
 end
 
 ##############################
-get '/ipd/user/show/:id_user' do
-  result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
-  msgs = []
-  result.each do |row|
-    msgs.push(IPDConfig::MSG[row[1]], row[2])
+get '/user/show/:id_user' do
+  @user = IPDUser::load_by_id(params[:id_user])
+  posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])
+  @user.posts = posts[0][0]
+  messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
+  @msgs = []
+  messages.each do |row|
+    @msg = IPDMessage.new
+    @msg.id = row[0]
+    @msg.message_id = row[1]
+    @msg.message_text = IPDConfig::MSG[row[1]]
+    @msg.time_created = row[2]
+    @msg.id_user = params[:id_user]
+    @msgs.push(@msg)
   end
-  msgs.to_json
+  slim :user, :pretty => true
 end

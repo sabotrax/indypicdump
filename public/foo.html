@@ -27,7 +27,7 @@
       // PRODUCTION
       //var ret = httpGet("/indypicdump/picture/random")
       // DEVELOPEMENT
-      var ret = httpGet("http://localhost:4567/ipd/picture/random")
+      var ret = httpGet("http://172.16.2.228:4567/ipd/picture/random")
       var obj = eval ("(" + ret + ")");
       document.getElementById('image').src = "pics/" + obj.filename;
       document.getElementById('nick').innerHTML = obj.nick;
