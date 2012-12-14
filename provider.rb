@@ -47,7 +47,7 @@ helpers do
 end
 
 ##############################
-get '/foo' do
+get '/foo.html' do
   random_id = IPDPicture.get_smart_random_id(request)
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
   @pic = IPDPicture.new
@@ -94,9 +94,9 @@ end
 # - return json, not text
 # - reinitialize random pool
 # PRODUCTION
-#get '/picture/delete' do
+get '/picture/delete' do
 # DEVELOPMENT
-get '/ipd/picture/delete' do
+#get '/ipd/picture/delete' do
   protected!
   # check params
   if params.has_key?("f")
