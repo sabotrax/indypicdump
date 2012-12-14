@@ -1,39 +1,44 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
-    <link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'>
-    <link rel="shortcut icon" href="sitepics/favicon.ico" />
-    <link rel="apple-touch-icon" href="sitepics/apple-touch-icon.png" />
-    <link rel="stylesheet" media="screen and (max-device-width: 900px)" href="css/mobile.css" />
-    <link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="css/mobile.css" />
-    <link rel='stylesheet' href='css/all.css' />
     <title>indypicdump</title>
-    <script language="JavaScript">
-    <!--
-    // fix for the viewport scaling bug
-    (function(doc)
-    {
-      var addEvent = 'addEventListener',
-	type = 'gesturestart',
-	qsa = 'querySelectorAll',
-	scales = [1, 5],
-	meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
-    
-      function fix()
+    <meta content="indypicdump picture server" name="description" />
+    <meta content="sabotrax and friends" name="author" />
+    <meta content="pictures" name="keywords" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="15" http-equiv="refresh" />
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css" />
+    <link href="/sitepics/favicon.ico" rel="shortcut icon" />
+    <link href="/sitepics/apple-touch-icon.png" rel="apple-touch-icon" />
+    <link href="/css/mobile.css" media="screen and (max-device-width: 900px)" rel="stylesheet" type="text/css" />
+    <link href="/css/mobile.css" media="screen and (-webkit-device-pixel-ratio: 1.5)" rel="stylesheet" type="text/css" />
+    <link href="/css/all.css" rel="stylesheet" type="text/css" />
+    <!--[if IE]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+      // fix viewport scaling bug
+      (function(doc)
       {
-	meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
-	doc.removeEventListener(type, fix, true);
-      }
-    
-      if ((meta = meta[meta.length - 1]) && addEvent in doc)
-      {
-	fix();
-	scales = [.25, 1.6];
-	doc[addEvent](type, fix, true);
-      }
-    }(document));
-    //-->
+        var addEvent = 'addEventListener',
+      type = 'gesturestart',
+      qsa = 'querySelectorAll',
+      scales = [1, 5],
+      meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
+      
+        function fix()
+        {
+      meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
+      doc.removeEventListener(type, fix, true);
+        }
+      
+        if ((meta = meta[meta.length - 1]) && addEvent in doc)
+        {
+      fix();
+      scales = [.25, 1.6];
+      doc[addEvent](type, fix, true);
+        }
+      }(document));
     </script>
   </head>
   <body>

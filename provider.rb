@@ -47,6 +47,22 @@ helpers do
 end
 
 ##############################
+get '/foo' do
+  random_id = IPDPicture.get_smart_random_id(request)
+  rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+  @pic = IPDPicture.new
+  @pic.filename = rnd_picture[0][1]
+  @pic.time_taken = rnd_picture[0][2]
+  @pic.time_send = rnd_picture[0][3]
+  @user = IPDUser.new
+  @user.id = rnd_picture[0][4]
+  @user.nick = rnd_picture[0][5]
+
+  headers( "Access-Control-Allow-Origin" => "*" )
+  slim :index, :pretty => true, :layout => false
+end
+
+##############################
 # PRODUCTION
 #get '/picture/random' do
 # DEVELOPMENT

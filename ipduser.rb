@@ -57,6 +57,7 @@ class IPDUser
     @email = ""
     @time_created = Time.now.to_i
     @posts = 0
+    @has_messages = false
   end
 
   def gen_nick
@@ -94,5 +95,13 @@ class IPDUser
     IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [self.email, self.time_created])
     result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
     IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+  end
+
+  def has_messages?
+    if self.id != 0
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
+      @has_messages = true if result.any?
+    end
+    return @has_messages
   end
 end

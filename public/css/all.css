@@ -64,6 +64,15 @@ img {
   border: 1px solid #859CE6;
 }
 
+li {
+  list-style-type: none;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
 #Content {
   width: 800px;
   margin: 0px auto; /* Right and left margin widths set to "auto" */

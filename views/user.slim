@@ -1,30 +1,17 @@
-doctype 5
-html
-  head
-    meta name="charset" content="utf-8"
-    meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5"
-    link href='https://fonts.googleapis.com/css?family=Inconsolata' rel='stylesheet' type='text/css'
-    link rel="shortcut icon" href="/sitepics/favicon.ico"
-    link rel="apple-touch-icon" href="/sitepics/apple-touch-icon.png"
-    link rel="stylesheet" media="screen and (max-device-width: 900px)" href="/css/mobile.css"
-    link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="/css/mobile.css"
-    link rel='stylesheet' href='/css/all.css'
-    title indypicdump
-  body
-    #Content
-      | hello #{@user.nick},
-      br
-      p
-        | you have posted #{@user.posts} pictures.
-        br
-        - if @msgs.empty?
-          | you have no messages.
-        - else
-          - if @msgs.length == 1
-            - ms = "a message"
-          - else
-            - ms = "some messages"
-          | you have #{ms}:
-      ul
-        - @msgs.each do |m|
-          li #{m.message_text} at #{Time.at(m.time_created)}
+| hello #{@user.nick},
+br
+p
+  | you have posted #{@user.posts} pictures.
+  br
+  - if @msgs.empty?
+    | you have no messages.
+  - else
+    - if @msgs.length == 1
+      - ms = "a message"
+    - else
+      - ms = "some messages"
+    | you have #{ms}:
+- if @msgs.any?
+  ul
+    - @msgs.each do |m|
+      li #{m.message_text} at #{Time.at(m.time_created).strftime("%e.%m.%Y %H:%M")}.
