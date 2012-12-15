@@ -59,7 +59,7 @@ get '/foo.html' do
   @user.nick = rnd_picture[0][5]
 
   headers( "Access-Control-Allow-Origin" => "*" )
-  slim :index, :pretty => true, :layout => false
+  slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
 end
 
 ##############################
@@ -93,15 +93,12 @@ end
 # TODO
 # - return json, not text
 # - reinitialize random pool
-# PRODUCTION
-get '/picture/delete' do
-# DEVELOPMENT
-#get '/ipd/picture/delete' do
+get '/picture/delete/:filename' do
   protected!
   # check params
-  if params.has_key?("f")
-    filename = params["f"]
-    return "FILENAME ERROR" if filename !~ /^\d+\.(\d+\.)?[A-Za-z]{1,4}$/
+  if params.has_key?("filename")
+    filename = params[:filename]
+    return "FILENAME ERROR" if filename !~ /^\d+\.(\d+\.)?[A-Za-z]{3,4}$/
   else
     return "PARAMETER ERROR"
   end
@@ -127,6 +124,10 @@ end
 ##############################
 get '/user/show/:id_user' do
   @user = IPDUser::load_by_id(params[:id_user])
+  unless @user
+    @msg = "no such user."
+    halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+  end
   posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])
   @user.posts = posts[0][0]
   messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
@@ -140,5 +141,11 @@ get '/user/show/:id_user' do
     @msg.id_user = params[:id_user]
     @msgs.push(@msg)
   end
-  slim :user, :pretty => true
+  slim :user, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+get '/usage.html' do
+  protected!
+  slim :usage, :pretty => IPDConfig::RENDER_PRETTY
 end

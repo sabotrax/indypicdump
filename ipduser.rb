@@ -22,6 +22,10 @@ class IPDUser
   @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
   @log.level = IPDConfig::LOG_LEVEL
 
+  class << self
+    attr_reader :log
+  end
+
   attr_accessor :id, :nick, :email, :time_created, :posts
 
   def self.load(email)
@@ -68,9 +72,7 @@ class IPDUser
     # create unique nick from wordlists
     while true do
       nick = adjectives.sample.chomp + " " + nouns.sample.chomp
-      #puts "nick " + nick
       found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
-      #puts "found " + found.size.to_s
       break if found.empty?
     end
     # otherwise insert into db 
@@ -87,14 +89,21 @@ class IPDUser
     #found = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
     #return unless found.empty?
 
-    # TODO
-    # commit/rollback
-    IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
-    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
-    self.id = result[0][0]
-    IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [self.email, self.time_created])
-    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
-    IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+    begin
+      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
+      self.id = result[0][0]
+      IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [self.email, self.time_created])
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
+      IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+    rescue SQLite3::Exception => e
+      IPDConfig::DB_HANDLE.rollback
+      log = IPDUser.log
+      log.fatal("DB ERROR WHILE SAVING USER #{self.email} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    IPDConfig::DB_HANDLE.commit
   end
 
   def has_messages?

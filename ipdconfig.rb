@@ -28,6 +28,8 @@ module IPDConfig
   LOG_LEVEL = 0
   HTTP_AUTH_USER = ''
   HTTP_AUTH_PASS = ''
+  RENDER_PRETTY = false
+
   # Picture
   POP3_HOST = ''
   POP3_PORT = 995
@@ -41,13 +43,15 @@ module IPDConfig
   CLIENT_TIMEOUT = 300
   PICTURE_DISPLAY_MOD_SPAN = 86000
   PICTURE_DISPLAY_MOD = 0.5
+
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
+
   # Message
   MSG_SHOWN_SPAN = 604800
   MSG = {
-    1 => "you sent a duplicate picture",
+    1 => "You sent a duplicate picture",
   }
   MSG_DUPLICATE_PIC = 1
 end

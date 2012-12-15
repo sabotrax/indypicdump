@@ -1,10 +1,12 @@
-| hello #{@user.nick},
+| Hello #{@user.nick},
 br
 p
-  | you have posted #{@user.posts} pictures.
+  - if @user.posts > 1
+    - ps = "s"
+  | you have posted #{@user.posts} picture#{ps}.
   br
   - if @msgs.empty?
-    | you have no messages.
+    | You have no messages.
   - else
     - if @msgs.length == 1
       - ms = "a message"

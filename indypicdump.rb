@@ -33,21 +33,20 @@ require 'ipdmessage'
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
 
-# TODO
-# turn switch to symbol
 switch = ARGV.shift
 if switch
-  if switch != "test"
+  case switch
+  when "test"
+    test = true
+  else
     puts "WRONG MODE (try \"test\")"
     exit
-  else
-    puts "MODE #{switch}"
   end
 end
 
 ##############################
 # get mail
-unless switch
+unless test
   Mail.defaults do
     retriever_method :pop3,
       :address    => IPDConfig::POP3_HOST,
@@ -58,7 +57,7 @@ unless switch
   end
 end
 
-unless switch
+unless test
   # TODO
   # is "asc" newest or oldest first? should be oldest
   mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
@@ -84,8 +83,8 @@ mail.each do |m|
       # check for duplicate pictures
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
       result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
-      unless result.empty?
-	# inform existing users
+      # inform existing users
+      if user and result.any?
 	msg = IPDMessage.new
 	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
 	msg.time_created = m.date.to_time.to_i
@@ -94,7 +93,7 @@ mail.each do |m|
 	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
 	# CAUTION
 	# we ignore duplicates in test mode
-	next unless switch
+	next unless test
       end
       log.info("SENDER #{email}")
       # create new user
@@ -144,7 +143,7 @@ picstack.each do |pic|
   # resize
   if img.columns >= img.rows and img.columns > 800
     resize = 800
-  elsif img.columns < img.rows and img.rows > 800
+  elsif img.columns < img.rows and img.rows > 600
     resize = 600
   end
   img.resize_to_fit!(resize) if resize

@@ -34,7 +34,7 @@ class IPDPicture
       # TODO
       # catch empty result error
       result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT count(*) FROM picture")
+      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
 
       randnum = []
       begin
@@ -66,8 +66,7 @@ class IPDPicture
       # TODO
       # catch empty result error
       result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT count(*) FROM picture")
-      max_offset = result[0][0]
+      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
 
       randnum = []
       begin
@@ -89,7 +88,7 @@ class IPDPicture
       # show newer pics more often
       span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
       # get new pictures
-      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [span])
+      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
@@ -125,7 +124,7 @@ class IPDPicture
     if @clients.has_key?(key)
       # TODO
       # log timeouts w client data from request
-      if now - @clients[key][:created_time] > IPDConfig::CLIENT_TIMEOUT
+      if now - @clients[key][:time_created] > IPDConfig::CLIENT_TIMEOUT
 	@clients.delete(key)
       end
     end
@@ -152,7 +151,7 @@ class IPDPicture
 	else
 	  unless @clients[key].kind_of?(Hash)
 	    @clients[key] = {
-	      :created_time => now,
+	      :time_created => now,
 	      :ids => [],
 	    }
 	  end
