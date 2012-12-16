@@ -28,6 +28,7 @@ require 'ipdpicture'
 require 'ipdmessage'
 require 'ipduser'
 
+set :environment, IPDConfig::ENVIRONMENT
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
 
@@ -48,8 +49,24 @@ end
 
 ##############################
 get '/foo.html' do
-  random_id = IPDPicture.get_smart_random_id(request)
-  rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+  begin
+    i = 0
+    while true
+      random_id = IPDPicture.get_smart_random_id(request)
+      rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+      if rnd_picture.empty?
+	log.warn("PICTURE MISSING WARNING OFFSET #{random_id}")
+	i += 1
+	raise if i == 5
+	next
+      end
+      break
+    end
+  rescue Exception => e
+    log.fatal("PICTURE MISSING ERROR")
+    @msg = "No pictures."
+    halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+  end
   @pic = IPDPicture.new
   @pic.filename = rnd_picture[0][1]
   @pic.time_taken = rnd_picture[0][2]
@@ -63,9 +80,6 @@ get '/foo.html' do
 end
 
 ##############################
-# PRODUCTION
-#get '/picture/random' do
-# DEVELOPMENT
 get '/ipd/picture/random' do
   random_id = IPDPicture.get_smart_random_id(request)
   rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
@@ -125,7 +139,7 @@ end
 get '/user/show/:id_user' do
   @user = IPDUser::load_by_id(params[:id_user])
   unless @user
-    @msg = "no such user."
+    @msg = "No such user."
     halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
   end
   posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])

@@ -69,11 +69,19 @@ class IPDUser
     nouns = []
     adjectives = File.readlines(IPDConfig::ADJECTIVES)
     nouns = File.readlines(IPDConfig::NOUNS)
+    max_nicks = adjectives.length * nouns.length
     # create unique nick from wordlists
+    i = 0
     while true do
       nick = adjectives.sample.chomp + " " + nouns.sample.chomp
       found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
       break if found.empty?
+      if i > max_nicks
+	log = IPDUser.log
+	log.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
+	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"
+      end
+      i += 1
     end
     # otherwise insert into db 
     IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [nick, Time.now.to_i])

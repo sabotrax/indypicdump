@@ -99,8 +99,8 @@ mail.each do |m|
       # create new user
       unless user
 	user = IPDUser.new
-	user.gen_nick
 	user.email = email
+	user.gen_nick
 	user.save
 	log.info("IS NEW USER \"#{user.nick}\"")
       end

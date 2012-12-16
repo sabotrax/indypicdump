@@ -28,7 +28,8 @@ module IPDConfig
   LOG_LEVEL = 0
   HTTP_AUTH_USER = ''
   HTTP_AUTH_PASS = ''
-  RENDER_PRETTY = false
+  RENDER_PRETTY = true
+  ENVIRONMENT = :development
 
   # Picture
   POP3_HOST = ''
