@@ -29,9 +29,11 @@ require 'ipdpicture'
 require 'ipdtest'
 require 'ipduser'
 require 'ipdmessage'
+require 'ipdpool'
 
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
+IPDPool.load
 
 switch = ARGV.shift
 if switch
@@ -83,7 +85,7 @@ mail.each do |m|
       # check for duplicate pictures
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
       result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
-      # inform existing users
+      # notify existing users
       if user and result.any?
 	msg = IPDMessage.new
 	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
@@ -92,9 +94,28 @@ mail.each do |m|
 	msg.save
 	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
 	# CAUTION
-	# we ignore duplicates in test mode
+	# we allow duplicates in test mode
 	next unless test
       end
+      # check for existing pool
+      # better
+      # IPDPool.is_in_pool?(m)
+      pool_alias = ""
+      unless m.subject.nil? and m.subject != ""
+	pool_alias = m.subject.downcase
+	pool_alias.tr!(" ", "-")
+	# notify existing users
+	unless IPDPool.pool.has_key?(pool_alias)
+	  msg = IPDMessage.new
+	  msg.message_id = IPDConfig::MSG_UNKNOWN_POOL
+	  msg.time_created = m.date.to_time.to_i
+	  msg.id_user = user.id
+	  msg.save
+	  log.info("UNKNOWN POOL #{pool_alias} FROM #{ m.from[0].downcase}")
+	  next
+	end
+      end
+
       log.info("SENDER #{email}")
       # create new user
       unless user
@@ -111,6 +132,7 @@ mail.each do |m|
       pic.time_send = m.date.to_time.to_i
       pic.id_user = user.id
       pic.original_hash = pic_hash
+      pic.id_pool = IPDPool.pool[pool_alias] if IPDPool.pool.has_key?(pool_alias)
       picstack.push(pic)
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
@@ -153,7 +175,7 @@ picstack.each do |pic|
     log.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash) VALUES (?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash, id_pool) VALUES (?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash, pic.id_pool])
   # delete tmp files 
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)

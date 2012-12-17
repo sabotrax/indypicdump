@@ -53,6 +53,8 @@ module IPDConfig
   MSG_SHOWN_SPAN = 604800
   MSG = {
     1 => "You sent a duplicate picture",
+    2 => "You sent to an unknown pool",
   }
   MSG_DUPLICATE_PIC = 1
+  MSG_UNKNOWN_POOL = 2
 end

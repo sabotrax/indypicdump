@@ -27,10 +27,16 @@ require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
 require 'ipduser'
+require 'ipdpool'
 
 set :environment, IPDConfig::ENVIRONMENT
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
+
+##############################
+configure do
+  IPDPool.load
+end
 
 ##############################
 helpers do
@@ -107,7 +113,6 @@ end
 # this is ugly
 # TODO
 # - return json, not text
-# - reinitialize random pool
 get '/picture/delete/:filename' do
   protected!
   # check params
@@ -169,4 +174,20 @@ end
 not_found do
   @msg = "Not found."
   slim :error, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+get '/:pool_alias/?' do
+  # TODO
+  # improve regex
+  # "-" must not be the last char
+  if params[:pool_alias] =~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/ and IPDPool.pool.has_key?(params[:pool_alias])
+    "POOL ID " + IPDPool.pool[params[:pool_alias]].to_s
+    # get random id for this pool
+    # ..go on
+  else
+    # TODO
+    # better: Pool not found. You might create it? w link
+    raise Sinatra::NotFound
+  end
 end

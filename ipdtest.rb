@@ -25,8 +25,9 @@ class IPDTest
     mail = Mail.new do
       from	"Marcus <flopflop@indypicdump.com>"
       to	"receiver@indypicdump.com"
-      subject	"this is a test"
-      add_file 	"test/angus_test.jpg"
+      subject	"tante anna"
+      add_file 	"test/northern_darkness_cat_test.jpg"
+      #add_file 	"test/angus_test.jpg"
       #add_file 	"test/schuler_test.jpg"
       #add_file 	"test/computer_test.jpg"
       #add_file 	"test/golden_gate_test.jpg"
@@ -36,6 +37,9 @@ class IPDTest
     Mail::TestMailer.deliveries.first
   end
 
+  # need
+  # - initial length of array
+  # - array
   def self.random_distribution(le, arr)
     count = {}
     arr.each do |i|
