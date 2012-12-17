@@ -37,7 +37,8 @@ helpers do
   def protected!
     unless authorized?
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
-      throw(:halt, [401, "Not authorized\n"])
+      @msg = "Not authorized."
+      halt [401, slim(:error, :pretty => IPDConfig::RENDER_PRETTY)]
     end
   end
 
@@ -162,4 +163,10 @@ end
 get '/usage.html' do
   protected!
   slim :usage, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+not_found do
+  @msg = "Not found."
+  slim :error, :pretty => IPDConfig::RENDER_PRETTY
 end
