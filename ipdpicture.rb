@@ -22,19 +22,23 @@ class IPDPicture
   @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
   @log.level = IPDConfig::LOG_LEVEL
 
-  @random_pool = []
+  @random_pool = {}
   @clients = {}
 
   ##############################
-  def self.get_random_id
+  def self.get_random_id(request)
     require "random/online"
 
-    if @random_pool.empty?
-      @log.info("RANDOM POOL EMPTY")
+    id_dump = IPDDump.dump[request.dump]
+    @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
+    if @random_pool[id_dump].empty?
+      # TODO
+      # better have real IPDDump objects -> can log dump alias
+      @log.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       # TODO
       # catch empty result error
       result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
+      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
 
       randnum = []
       begin
@@ -51,22 +55,26 @@ class IPDPicture
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       
-      @random_pool = randnum
+      @random_pool[id_dump] = randnum
     end
-    @random_pool.shift
+    @random_pool[id_dump].shift
   end
 
   ##############################
-  def self.get_weighted_random_id
+  def self.get_weighted_random_id(request)
     require "random/online"
-    require "./ipdtest"
+    require "ipdtest"
 
-    if @random_pool.empty?
-      @log.info("RANDOM POOL EMPTY")
+    id_dump = IPDDump.dump[request.dump]
+    @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
+    if @random_pool[id_dump].empty?
+      # TODO
+      # better have real IPDDump objects -> can log dump alias
+      @log.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       # TODO
       # catch empty result error
       result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
+      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
 
       randnum = []
       begin
@@ -88,7 +96,7 @@ class IPDPicture
       # show newer pics more often
       span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
       # get new pictures
-      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [span])
+      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_send > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
@@ -103,11 +111,10 @@ class IPDPicture
       end
       #puts IPDTest.random_distribution(1000, randnum)
 
-      @random_pool = randnum
+      @random_pool[id_dump] = randnum
     end
-    @random_pool.shift
+    @random_pool[id_dump].shift
   end
-
 
   ##############################
   # - generate smart random ids
@@ -118,13 +125,15 @@ class IPDPicture
   def self.get_smart_random_id(request)
     # identify client
     key = Digest::RMD160::hexdigest(request.ip + request.user_agent).to_sym
+    # and dump
+    id_dump = IPDDump.dump[request.dump]
 
     # remove old clients
     now = Time.now.to_i
-    if @clients.has_key?(key)
+    if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
       # TODO
       # log timeouts w client data from request
-      if now - @clients[key][:time_created] > IPDConfig::CLIENT_TIMEOUT
+      if now - @clients[key][id_dump][:time_created] > IPDConfig::CLIENT_TIMEOUT
 	@clients.delete(key)
       end
     end
@@ -137,10 +146,10 @@ class IPDPicture
 
       # find non-sequential id
       while true do
-	#random_id = self.get_random_id
-	random_id = self.get_weighted_random_id
-	if @clients.has_key?(key)
-	  if @clients[key][:ids].include?(random_id)
+	#random_id = self.get_random_id(request)
+	random_id = self.get_weighted_random_id(request)
+	if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
+	  if @clients[key][id_dump][:ids].include?(random_id)
 	    if i == IPDConfig::NOSHOW_LAST_IDS - 1
 	      raise
 	    else
@@ -150,28 +159,31 @@ class IPDPicture
 	  end
 	else
 	  unless @clients[key].kind_of?(Hash)
-	    @clients[key] = {
+	    @clients[key] = {}
+	  end
+	  unless @clients[key][id_dump].kind_of?(Hash)
+	    @clients[key][id_dump] = {
 	      :time_created => now,
 	      :ids => [],
 	    }
 	  end
 	end
-	@clients[key][:ids].push(random_id)
-	if @clients[key][:ids].length > IPDConfig::NOSHOW_LAST_IDS
-	  @clients[key][:ids].shift
+	@clients[key][id_dump][:ids].push(random_id)
+	if @clients[key][id_dump][:ids].length > IPDConfig::NOSHOW_LAST_IDS
+	  @clients[key][id_dump][:ids].shift
 	end
 	break
       end
     rescue
-      @log.warn("BAD LUCK RANDOM ID WARNING")
-      @clients[key][:ids] = []
+      @log.warn("BAD LUCK RANDOM ID WARNING DUMP #{id_dump}")
+      @clients[key][id_dump][:ids] = []
       retry
     end
 
     return random_id
   end
 
-  attr_accessor :filename, :time_taken, :time_send, :id_user, :original_hash, :id_pool
+  attr_accessor :filename, :time_taken, :time_send, :id_user, :original_hash, :id_dump
 
   def initialize
     @filename = ""
@@ -179,6 +191,6 @@ class IPDPicture
     @time_send = 0
     @id_user = 0
     @original_hash = ""
-    @id_pool = 0
+    @id_dump = 0
   end
 end

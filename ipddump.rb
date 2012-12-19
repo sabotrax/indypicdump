@@ -15,27 +15,27 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-class IPDPool
-  @pool = {}
+class IPDDump
+  @dump = {}
 
   class << self
-    attr_accessor :pool
+    attr_accessor :dump
   end
 
   def self.load
-    pool = self.pool
-    return pool if pool.any?
-    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM pool ORDER BY id ASC")
+    dump = self.dump
+    return dump if dump.any?
+    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump ORDER BY id ASC")
     result.each do |row|
       # catch SQLite duplicate inserts bug
-      next if pool.has_key?(row[1])
-      pool[row[1]] = row[0]
+      next if dump.has_key?(row[1])
+      dump[row[1]] = row[0]
     end
-    self.pool = pool
+    self.dump = dump
   end
 
   def self.reload
-    self.pool = {}
+    self.dump = {}
     self.load
   end
 

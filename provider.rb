@@ -27,7 +27,8 @@ require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
 require 'ipduser'
-require 'ipdpool'
+require 'ipddump'
+require 'ipdhelper'
 
 set :environment, IPDConfig::ENVIRONMENT
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
@@ -35,7 +36,7 @@ log.level = IPDConfig::LOG_LEVEL
 
 ##############################
 configure do
-  IPDPool.load
+  IPDDump.load
 end
 
 ##############################
@@ -177,14 +178,39 @@ not_found do
 end
 
 ##############################
-get '/:pool_alias/?' do
-  # TODO
-  # improve regex
-  # "-" must not be the last char
-  if params[:pool_alias] =~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/ and IPDPool.pool.has_key?(params[:pool_alias])
-    "POOL ID " + IPDPool.pool[params[:pool_alias]].to_s
-    # get random id for this pool
-    # ..go on
+get '/*' do
+  if request.has_dump? and IPDDump.dump.has_key?(request.dump)
+    id_dump = IPDDump.dump[request.dump]
+    begin
+      i = 0
+      while true
+	random_id = IPDPicture.get_smart_random_id(request)
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	if rnd_picture.empty?
+	  log.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  i += 1
+	  raise if i == 5
+	  next
+	end
+	break
+      end
+    # TODO
+    # use own error class
+    # this is catch all :/
+    rescue Exception => e
+      log.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+      @msg = "No pictures."
+      halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+    end
+    @pic = IPDPicture.new
+    @pic.filename = rnd_picture[0][1]
+    @pic.time_taken = rnd_picture[0][2]
+    @pic.time_send = rnd_picture[0][3]
+    @user = IPDUser.new
+    @user.id = rnd_picture[0][4]
+    @user.nick = rnd_picture[0][5]
+
+    slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
     # TODO
     # better: Pool not found. You might create it? w link
