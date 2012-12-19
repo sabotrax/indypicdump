@@ -46,4 +46,11 @@ class IPDDump
     @alias = ""
     @time_created = Time.now.to_i
   end
+
+  def save
+    unless self.alias
+      raise
+    end
+    IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])
+  end
 end

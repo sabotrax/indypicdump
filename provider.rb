@@ -166,6 +166,35 @@ get '/user/show/:id_user' do
 end
 
 ##############################
+get '/dump/create/?' do
+  @msg = ""
+  slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+post '/dump/create/?' do
+  # CAUTION
+  # "downcase" only works in the ASCII region
+  dump_alias = params[:dump].strip.downcase
+  dump_alias.tr!(" ", "-")
+  # TODO
+  # improve regex
+  redirect '/ipd/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/
+  result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
+  if result.any?
+    @msg = "Sry, this dump already exists."
+    halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  dump = IPDDump.new
+  dump.alias = dump_alias
+  dump.save
+  @msg = "OK, now add pictures to <a href=\"/ipd/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
+  # TODO
+  # "error" should be "notification"
+  slim :error, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
 get '/usage.html' do
   protected!
   slim :usage, :pretty => IPDConfig::RENDER_PRETTY

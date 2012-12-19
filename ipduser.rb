@@ -97,6 +97,8 @@ class IPDUser
     #found = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
     #return unless found.empty?
 
+    # TODO
+    # add raise like in other save methods
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])

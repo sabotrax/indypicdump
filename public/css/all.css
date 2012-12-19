@@ -59,9 +59,35 @@ body {
   overflow-x: hidden;
 }
 
+.button {
+  color: #859CE6;
+  background: #424242;
+  border: 1px solid #859CE6;
+  padding:2px;
+  font-family: 'Inconsolata', sans-serif;
+}
+
+.button:hover {
+  color: #E18728;
+  background: #424242;
+  border: 1px solid #859CE6;
+  padding:2px;
+  font-family: 'Inconsolata', sans-serif;
+}
+
 img {
   padding: 1px;
   border: 1px solid #859CE6;
+}
+
+.input {
+  width: 150px;
+  color: #859CE6;
+  background: #424242;
+  border: 1px solid #859CE6;
+  padding:2px;
+  outline: none;
+  font-family: 'Inconsolata', sans-serif;
 }
 
 li {
@@ -82,4 +108,8 @@ ul {
   font-family: 'Inconsolata', sans-serif;
   color: #859CE6;
   /* color: #E18728; */
+}
+
+#message {
+  color: #E18728;
 }
