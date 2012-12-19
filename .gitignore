@@ -1,5 +1,7 @@
 *.db
 *.log
+robots.txt
+humans.txt
 log/
 pics/
 test/

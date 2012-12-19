@@ -88,29 +88,6 @@ get '/foo.html' do
 end
 
 ##############################
-get '/ipd/picture/random' do
-  random_id = IPDPicture.get_smart_random_id(request)
-  rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
-  headers( "Access-Control-Allow-Origin" => "*" )
-  # CAUTION
-  # this is a workaround for a time zone problem with "time_taken"
-  time_taken = rnd_picture[0][2]
-  time_send = rnd_picture[0][3]
-  if time_taken > time_send
-    time_taken -= 3600
-    log.warn("TIME_TAKEN > TIME_SEND WARNING ID #{rnd_picture[0][0]}")
-  end
-  tt = Time.at(time_taken)
-  ts = Time.at(time_send)
-  {
-    filename: rnd_picture[0][1],
-    time_taken: tt.strftime("%e.%m.%Y %H:%M"),
-    time_send: ts.strftime("%e.%m.%Y %H:%M"),
-    nick: rnd_picture[0][4],
-  }.to_json
-end
-
-##############################
 # this is ugly
 # TODO
 # - return json, not text
@@ -179,7 +156,7 @@ post '/dump/create/?' do
   dump_alias.tr!(" ", "-")
   # TODO
   # improve regex
-  redirect '/ipd/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/
+  redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/
   result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
   if result.any?
     @msg = "Sry, this dump already exists."
@@ -188,10 +165,15 @@ post '/dump/create/?' do
   dump = IPDDump.new
   dump.alias = dump_alias
   dump.save
-  @msg = "OK, now add pictures to <a href=\"/ipd/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
+  @msg = "OK, now add pictures to <a href=\"/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
   # TODO
   # "error" should be "notification"
   slim :error, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+get '/' do
+  slim :landing, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
