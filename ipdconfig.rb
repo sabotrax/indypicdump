@@ -30,6 +30,8 @@ module IPDConfig
   HTTP_AUTH_PASS = ''
   RENDER_PRETTY = true
   ENVIRONMENT = :development
+  RECAPTCHA_PUB_KEY = ''
+  RECAPTCHA_PRIV_KEY = ''
 
   # Picture
   POP3_HOST = ''

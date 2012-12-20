@@ -16,10 +16,12 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 class IPDDump
+  @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
+  @log.level = IPDConfig::LOG_LEVEL
   @dump = {}
 
   class << self
-    attr_accessor :dump
+    attr_accessor :dump, :log
   end
 
   def self.load
@@ -51,6 +53,18 @@ class IPDDump
     unless self.alias
       raise
     end
-    IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])
+    begin
+      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])
+      result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+      self.id = result[0][0]
+      IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
+    rescue SQLite3::Exception => e
+      IPDConfig::DB_HANDLE.rollback
+      log = IPDDump.log
+      log.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    IPDConfig::DB_HANDLE.commit
   end
 end

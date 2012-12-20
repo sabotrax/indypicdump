@@ -23,6 +23,7 @@ require 'sinatra'
 require 'json'
 require 'sqlite3'
 require 'slim'
+require 'rack/recaptcha'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
@@ -31,6 +32,9 @@ require 'ipddump'
 require 'ipdhelper'
 
 set :environment, IPDConfig::ENVIRONMENT
+use Rack::Recaptcha, :public_key => IPDConfig::RECAPTCHA_PUB_KEY, :private_key => IPDConfig::RECAPTCHA_PRIV_KEY
+helpers Rack::Recaptcha::Helpers
+Rack::Recaptcha.test_mode! if IPDConfig::ENVIRONMENT == :development
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
 
@@ -53,38 +57,6 @@ helpers do
     @auth ||=  Rack::Auth::Basic::Request.new(request.env)
     @auth.provided? && @auth.basic? && @auth.credentials && @auth.credentials == [IPDConfig::HTTP_AUTH_USER, IPDConfig::HTTP_AUTH_PASS]
   end
-end
-
-##############################
-get '/foo.html' do
-  begin
-    i = 0
-    while true
-      random_id = IPDPicture.get_smart_random_id(request)
-      rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM picture p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
-      if rnd_picture.empty?
-	log.warn("PICTURE MISSING WARNING OFFSET #{random_id}")
-	i += 1
-	raise if i == 5
-	next
-      end
-      break
-    end
-  rescue Exception => e
-    log.fatal("PICTURE MISSING ERROR")
-    @msg = "No pictures."
-    halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
-  end
-  @pic = IPDPicture.new
-  @pic.filename = rnd_picture[0][1]
-  @pic.time_taken = rnd_picture[0][2]
-  @pic.time_send = rnd_picture[0][3]
-  @user = IPDUser.new
-  @user.id = rnd_picture[0][4]
-  @user.nick = rnd_picture[0][5]
-
-  headers( "Access-Control-Allow-Origin" => "*" )
-  slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
 end
 
 ##############################
@@ -156,7 +128,7 @@ post '/dump/create/?' do
   dump_alias.tr!(" ", "-")
   # TODO
   # improve regex
-  redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/
+  redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/ or !recaptcha_valid?
   result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
   if result.any?
     @msg = "Sry, this dump already exists."
