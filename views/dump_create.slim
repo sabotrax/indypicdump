@@ -6,9 +6,9 @@ p
   | Just be sure to have read our <a href="/guidelines.html">guidelines</a>.
 - unless @msg.empty?
   p#message #{@msg}
-p
-  == recaptcha_tag(:challenge)
 form action="/dump/create" method="post"
+  p
+    == recaptcha_tag(:challenge)
   input type="text" name="dump" class="input"
   | &nbsp;
   input type="submit" value="Create dump" class="button"
