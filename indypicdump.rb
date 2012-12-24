@@ -137,7 +137,7 @@ mail.each do |m|
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
       rescue Exception => e
-	log.fatal("FILE SAVE ERROR #{user.email} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
+	log.fatal("FILE SAVE ERROR #{email} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
     # only one pic per mail

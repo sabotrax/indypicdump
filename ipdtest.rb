@@ -23,14 +23,14 @@ class IPDTest
       delivery_method :test
     end
     mail = Mail.new do
-      from	"Marcus <flopflop@indypicdump.com>"
+      from	"Marcus <sappo@indypicdump.com>"
       to	"receiver@indypicdump.com"
       subject	"schnubel"
-      #add_file 	"test/han_solo_test.jpg"
+      add_file 	"test/han_solo_test.jpg"
       #add_file 	"test/northern_darkness_cat_test.jpg"
       #add_file 	"test/angus_test.jpg"
       #add_file 	"test/schuler_test.jpg"
-      add_file 	"test/computer_test.jpg"
+      #add_file 	"test/computer_test.jpg"
       #add_file 	"test/golden_gate_test.jpg"
       #add_file 	"test/fountain_test_w_exif_date_broken.jpg"
     end

@@ -26,7 +26,7 @@ class IPDUser
     attr_reader :log
   end
 
-  attr_accessor :id, :nick, :email, :time_created, :posts
+  attr_accessor :id, :nick, :time_created, :posts
 
   def self.load(email)
     found = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [email])
@@ -49,19 +49,36 @@ class IPDUser
       user.id = found[0][0]
       user.nick = found[0][1]
       user.time_created = found[0][2]
+      email = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [id])
+      email.each do |row|
+	user.email = row[1]
+      end
     else
       user = nil
     end
+    puts user.inspect
     return user
   end
 
   def initialize
     @id = 0
     @nick = ""
-    @email = ""
+    @email = []
     @time_created = Time.now.to_i
     @posts = 0
     @has_messages = false
+  end
+
+  def email=(email)
+    if email.kind_of? Array
+      @email = email
+    else
+      @email.push(email)
+    end
+  end
+
+  def email
+    @email
   end
 
   def gen_nick
