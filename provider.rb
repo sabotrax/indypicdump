@@ -92,6 +92,48 @@ get '/picture/delete/:filename' do
 end
 
 ##############################
+get '/picture/show/user/:id_user' do
+  # get here from /pic/show/user/:id_user/random (and others)
+  if request.has_dump? and IPDUser.is_user?(params[:id_user])
+    id_dump = request.dump
+    begin
+      i = 0
+      while true
+	random_id = IPDPicture.get_smart_random_id(request)
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	if rnd_picture.empty?
+	  log.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  i += 1
+	  raise if i == 5
+	  next
+	end
+	break
+      end
+    # TODO
+    # use own error class
+    # this is catch all :/
+    rescue Exception => e
+      log.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+      @msg = "No pictures."
+      halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+    end
+    @pic = IPDPicture.new
+    @pic.filename = rnd_picture[0][1]
+    @pic.time_taken = rnd_picture[0][2]
+    @pic.time_send = rnd_picture[0][3]
+    @user = IPDUser.new
+    @user.id = rnd_picture[0][4]
+    @user.nick = rnd_picture[0][5]
+
+    slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
+  else
+    # TODO
+    # better: Pool not found. You might create it? w link
+    raise Sinatra::NotFound
+  end
+end
+
+##############################
 get '/user/show/:id_user' do
   @user = IPDUser::load_by_id(params[:id_user])
   unless @user

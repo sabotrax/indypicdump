@@ -17,10 +17,14 @@
 
 class Sinatra::Request
   def dump
+    # user dump
+    if self.path =~ /^\/picture\/show\/user\/([1-9][0-9]*)$/
+      dump = "ud" + $1.to_s
     # TODO
     # improve regex
     # "-" must not be the last char
-    if self.path =~ /^\/([a-zA-Z0-9][a-zA-Z0-9-]*$)/
+    # multi dump
+    elsif self.path =~ /^\/([a-zA-Z0-9][a-zA-Z0-9-]*)$/
       dump = $1
     else
       dump = ""

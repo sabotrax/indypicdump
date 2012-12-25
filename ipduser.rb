@@ -65,6 +65,14 @@ class IPDUser
   end
 
   ##############################
+  def self.is_user?(id)
+    is_user = false
+    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [id])
+    is_user = true if result.any?
+    return is_user
+  end
+
+  ##############################
   def initialize
     @id = 0
     @nick = ""
@@ -135,6 +143,7 @@ class IPDUser
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
       end
+      IPDConfig::DB_HANDLE.execute("CREATE VIEW \"ud#{self.id}\" AS SELECT * FROM picture WHERE id_user = #{self.id}")
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       log = IPDUser.log

@@ -64,7 +64,7 @@ class IPDPicture
   def self.get_weighted_random_id(request)
     require "ipdtest"
 
-    id_dump = IPDDump.dump[request.dump]
+    id_dump = IPDDump.dump[request.dump] || request.dump
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
       # TODO
@@ -125,7 +125,8 @@ class IPDPicture
     # identify client
     key = Digest::RMD160::hexdigest(request.ip + request.user_agent).to_sym
     # and dump
-    id_dump = IPDDump.dump[request.dump]
+    # multi or user dump
+    id_dump = IPDDump.dump[request.dump] || request.dump
 
     # remove old clients
     now = Time.now.to_i
