@@ -23,7 +23,7 @@ class IPDTest
       delivery_method :test
     end
     mail = Mail.new do
-      from	"Marcus <sappo@indypicdump.com>"
+      from	"Marcus <propro@indypicdump.com>"
       to	"receiver@indypicdump.com"
       subject	"schnubel"
       add_file 	"test/han_solo_test.jpg"

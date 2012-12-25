@@ -128,11 +128,11 @@ class IPDUser
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
+      result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
       self.id = result[0][0]
       self.email.each do |address|
 	IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
-	result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
+	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
       end
     rescue SQLite3::Exception => e
@@ -147,7 +147,7 @@ class IPDUser
   ##############################
   def has_messages?
     if self.id != 0
-      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - IPDConfig::MSG_SHOW_SPAN])
       @has_messages = true if result.any?
     end
     return @has_messages

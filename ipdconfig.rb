@@ -52,7 +52,7 @@ module IPDConfig
   NOUNS = PATH + '/data/nouns.txt'
 
   # Message
-  MSG_SHOWN_SPAN = 604800
+  MSG_SHOW_SPAN = 604800
   MSG = {
     1 => "You sent a duplicate picture",
     2 => "You posted to an unknown dump",

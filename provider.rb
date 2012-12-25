@@ -40,7 +40,7 @@ log.level = IPDConfig::LOG_LEVEL
 
 ##############################
 configure do
-  IPDDump.load
+  IPDDump.load_dump_map
 end
 
 ##############################
@@ -100,7 +100,7 @@ get '/user/show/:id_user' do
   end
   posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])
   @user.posts = posts[0][0]
-  messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])
+  messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOW_SPAN])
   @msgs = []
   messages.each do |row|
     @msg = IPDMessage.new

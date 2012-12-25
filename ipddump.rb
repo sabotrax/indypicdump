@@ -24,7 +24,7 @@ class IPDDump
     attr_accessor :dump, :log
   end
 
-  def self.load
+  def self.load_dump_map
     dump = self.dump
     return dump if dump.any?
     result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump ORDER BY id ASC")
@@ -36,7 +36,7 @@ class IPDDump
     self.dump = dump
   end
 
-  def self.reload
+  def self.reload_dump_map
     self.dump = {}
     self.load
   end

@@ -17,6 +17,7 @@
 
 require 'sqlite3'
 require 'logger'
+require "random/online"
 
 class IPDPicture
   @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
@@ -27,7 +28,6 @@ class IPDPicture
 
   ##############################
   def self.get_random_id(request)
-    require "random/online"
 
     id_dump = IPDDump.dump[request.dump]
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
@@ -62,7 +62,6 @@ class IPDPicture
 
   ##############################
   def self.get_weighted_random_id(request)
-    require "random/online"
     require "ipdtest"
 
     id_dump = IPDDump.dump[request.dump]

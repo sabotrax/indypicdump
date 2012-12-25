@@ -33,7 +33,7 @@ require 'ipddump'
 
 log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
 log.level = IPDConfig::LOG_LEVEL
-IPDDump.load
+IPDDump.load_dump_map
 
 switch = ARGV.shift
 if switch

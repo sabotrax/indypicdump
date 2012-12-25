@@ -30,6 +30,10 @@ class IPDMessage
     unless self.message_id and self.id_user
       raise
     end
+    IPDConfig::DB_HANDLE.transaction
     IPDConfig::DB_HANDLE.execute("INSERT INTO message (message_id, time_created, id_user) VALUES (?, ?, ?)", [self.message_id, self.time_created, self.id_user])
+    result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+    self.id = result[0][0]
+    IPDConfig::DB_HANDLE.commit
   end
 end
