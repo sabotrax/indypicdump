@@ -81,7 +81,7 @@ mail.each do |m|
       # CAUTION
       # "downcase" only works in the ASCII region
       email = m.from[0].downcase
-      user = IPDUser.load(email)
+      user = IPDUser.load_by_email(email)
       # check for duplicate pictures
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
       result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
@@ -137,7 +137,7 @@ mail.each do |m|
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
       rescue Exception => e
-	log.fatal("FILE SAVE ERROR #{email} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
+	log.fatal("FILE SAVE ERROR #{user.email.to_s} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
     # only one pic per mail

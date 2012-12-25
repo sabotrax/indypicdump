@@ -28,20 +28,25 @@ class IPDUser
 
   attr_accessor :id, :nick, :time_created, :posts
 
-  def self.load(email)
+  ##############################
+  def self.load_by_email(email)
     found = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [email])
     if found.any?
       user = self.new
       user.id = found[0][0]
       user.nick = found[0][1]
       user.time_created = found[0][2]
-      user.email = email
+      result = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
+      result.each do |row|
+	user.email = row[1]
+      end
     else
       user = nil
     end
     return user
   end
 
+  ##############################
   def self.load_by_id(id)
     found = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [id])
     if found.any?
@@ -56,10 +61,10 @@ class IPDUser
     else
       user = nil
     end
-    puts user.inspect
     return user
   end
 
+  ##############################
   def initialize
     @id = 0
     @nick = ""
@@ -69,6 +74,7 @@ class IPDUser
     @has_messages = false
   end
 
+  ##############################
   def email=(email)
     if email.kind_of? Array
       @email = email
@@ -77,10 +83,12 @@ class IPDUser
     end
   end
 
+  ##############################
   def email
     @email
   end
 
+  ##############################
   def gen_nick
     adjectives = []
     nouns = []
@@ -105,6 +113,7 @@ class IPDUser
     self.nick = nick
   end
 
+  ##############################
   def save
     # TODO
     # there's a mysterious bug where new users get saved two times
@@ -121,18 +130,21 @@ class IPDUser
       IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
       self.id = result[0][0]
-      IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [self.email, self.time_created])
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
-      IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+      self.email.each do |address|
+	IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
+	result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
+	IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+      end
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       log = IPDUser.log
-      log.fatal("DB ERROR WHILE SAVING USER #{self.email} / #{e.message} / #{e.backtrace.shift}")
+      log.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit
   end
 
+  ##############################
   def has_messages?
     if self.id != 0
       result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - IPDConfig::MSG_SHOWN_SPAN])

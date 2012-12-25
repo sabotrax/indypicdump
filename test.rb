@@ -69,3 +69,18 @@
 #require "digest"
 #puts Digest::RMD160::hexdigest("aljdbhgbsd,jnsd,fnsf,dfnsd,mfnsdf,mdsnf,dsf")
 #puts Digest::SHA256::hexdigest("aljdbhgbsd,jnsd,fnsf,dfnsd,mfnsdf,mdsnf,dsf")
+
+# 10
+#require "sqlite3"
+#require "./ipdconfig"
+#require "./ipduser"
+#user = IPDUser.new
+#user.nick = "test"
+#user.email = "mail1@test.org"
+#user.email = "mail2@test.org"
+#puts user.inspect
+#user.save
+#puts user.inspect
+#user = IPDUser.load_by_email("mail1@test.org")
+#puts user.inspect
+
