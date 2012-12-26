@@ -16,12 +16,10 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 class IPDDump
-  @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
-  @log.level = IPDConfig::LOG_LEVEL
   @dump = {}
 
   class << self
-    attr_accessor :dump, :log
+    attr_accessor :dump
   end
 
   def self.load_dump_map
@@ -61,8 +59,7 @@ class IPDDump
       IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      log = IPDDump.log
-      log.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit

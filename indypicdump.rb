@@ -23,7 +23,6 @@ require 'mail'
 require 'RMagick'
 require 'sqlite3'
 require 'date'
-require 'logger'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdtest'
@@ -31,8 +30,6 @@ require 'ipduser'
 require 'ipdmessage'
 require 'ipddump'
 
-log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
-log.level = IPDConfig::LOG_LEVEL
 IPDDump.load_dump_map
 
 switch = ARGV.shift
@@ -67,7 +64,7 @@ else
   mail = []
   mail.push(IPDTest.gen_mail)
 end
-log.info("MAILS #{mail.length}/#{IPDConfig::FETCH_MAILS}")
+IPDConfig::LOG_HANDLE.info("MAILS #{mail.length}/#{IPDConfig::FETCH_MAILS}")
 
 picstack = []
 
@@ -92,7 +89,7 @@ mail.each do |m|
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
-	log.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
+	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
 	# CAUTION
 	# we allow duplicates in test mode
 	next unless test
@@ -111,19 +108,19 @@ mail.each do |m|
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  log.info("UNKNOWN DUMP #{dump_alias} FROM #{ m.from[0].downcase}")
+	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{dump_alias} FROM #{ m.from[0].downcase}")
 	  next
 	end
       end
 
-      log.info("SENDER #{email}")
+      IPDConfig::LOG_HANDLE.info("SENDER #{email}")
       # create new user
       unless user
 	user = IPDUser.new
 	user.email = email
 	user.gen_nick
 	user.save
-	log.info("IS NEW USER \"#{user.nick}\"")
+	IPDConfig::LOG_HANDLE.info("IS NEW USER \"#{user.nick}\"")
       end
       # generate unique filename
       filename = Time.now.to_f.to_s + File.extname(attachment.filename)
@@ -137,7 +134,7 @@ mail.each do |m|
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
       rescue Exception => e
-	log.fatal("FILE SAVE ERROR #{user.email.to_s} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
+	IPDConfig::LOG_HANDLE.fatal("FILE SAVE ERROR #{user.email.to_s} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
     # only one pic per mail
@@ -172,7 +169,7 @@ picstack.each do |pic|
   begin
    img.write(IPDConfig::PIC_DIR + "/" + pic.filename)
   rescue Exception => e
-    log.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
   IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash, id_dump) VALUES (?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash, pic.id_dump])
@@ -180,9 +177,7 @@ picstack.each do |pic|
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)
   rescue Exception => e
-    log.fatal("FILE DELETE ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
-  log.info("ADD PICTURE #{pic.filename} DUMP #{pic.id_dump}")
+  IPDConfig::LOG_HANDLE.info("ADD PICTURE #{pic.filename} DUMP #{pic.id_dump}")
 end
-
-log.close

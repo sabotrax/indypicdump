@@ -16,13 +16,9 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 require 'sqlite3'
-require 'logger'
 require "random/online"
 
 class IPDPicture
-  @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
-  @log.level = IPDConfig::LOG_LEVEL
-
   @random_pool = {}
   @clients = {}
 
@@ -34,7 +30,7 @@ class IPDPicture
     if @random_pool[id_dump].empty?
       # TODO
       # better have real IPDDump objects -> can log dump alias
-      @log.info("RANDOM POOL EMPTY DUMP #{id_dump}")
+      IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       # TODO
       # catch empty result error
       result = []
@@ -50,8 +46,8 @@ class IPDPicture
       # TODO
       # retry? (The Ruby Programming Language, 162)
       rescue Exception => e
-	@log.error("RANDOM NUMBER FETCH ERROR #{e}")
-	@log.info("USING RANDOM NUMBER FALLBACK GENERATOR")
+	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
+	IPDConfig::LOG_HANDLE.info("USING RANDOM NUMBER FALLBACK GENERATOR")
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       
@@ -69,7 +65,7 @@ class IPDPicture
     if @random_pool[id_dump].empty?
       # TODO
       # better have real IPDDump objects -> can log dump alias
-      @log.info("RANDOM POOL EMPTY DUMP #{id_dump}")
+      IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       # TODO
       # catch empty result error
       result = []
@@ -85,8 +81,8 @@ class IPDPicture
       # TODO
       # retry? (The Ruby Programming Language, 162)
       rescue Exception => e
-	@log.error("RANDOM NUMBER FETCH ERROR #{e}")
-	@log.info("USING RANDOM NUMBER FALLBACK GENERATOR")
+	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
+	IPDConfig::LOG_HANDLE.info("USING RANDOM NUMBER FALLBACK GENERATOR")
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       
@@ -175,7 +171,7 @@ class IPDPicture
 	break
       end
     rescue
-      @log.warn("BAD LUCK RANDOM ID WARNING DUMP #{id_dump}")
+      IPDConfig::LOG_HANDLE.warn("BAD LUCK RANDOM ID WARNING DUMP #{id_dump}")
       @clients[key][id_dump][:ids] = []
       retry
     end

@@ -15,17 +15,7 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-require 'sqlite3'
-require 'logger'
-
 class IPDUser
-  @log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
-  @log.level = IPDConfig::LOG_LEVEL
-
-  class << self
-    attr_reader :log
-  end
-
   attr_accessor :id, :nick, :time_created, :posts
 
   ##############################
@@ -110,8 +100,7 @@ class IPDUser
       found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
       break if found.empty?
       if i > max_nicks
-	log = IPDUser.log
-	log.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
+	IPDConfig::LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
 	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"
       end
       i += 1
@@ -146,8 +135,7 @@ class IPDUser
       IPDConfig::DB_HANDLE.execute("CREATE VIEW \"ud#{self.id}\" AS SELECT * FROM picture WHERE id_user = #{self.id}")
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      log = IPDUser.log
-      log.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit

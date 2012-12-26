@@ -15,6 +15,8 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
+require 'logger'
+
 module IPDConfig
   # General
   PATH = '/home/schommer/dev/indypicdump'
@@ -26,6 +28,8 @@ module IPDConfig
   # 1 = info
   # 2 = warn
   LOG_LEVEL = 0
+  LOG_HANDLE = Logger.new(LOG, LOG_ROTATION)
+  LOG_HANDLE.level = LOG_LEVEL
   HTTP_AUTH_USER = ''
   HTTP_AUTH_PASS = ''
   RENDER_PRETTY = true

@@ -35,8 +35,6 @@ set :environment, IPDConfig::ENVIRONMENT
 use Rack::Recaptcha, :public_key => IPDConfig::RECAPTCHA_PUB_KEY, :private_key => IPDConfig::RECAPTCHA_PRIV_KEY
 helpers Rack::Recaptcha::Helpers
 Rack::Recaptcha.test_mode! if IPDConfig::ENVIRONMENT == :development
-log = Logger.new(IPDConfig::LOG, IPDConfig::LOG_ROTATION)
-log.level = IPDConfig::LOG_LEVEL
 
 ##############################
 configure do
@@ -85,9 +83,9 @@ get '/picture/delete/:filename' do
   begin
     File.unlink(IPDConfig::PIC_DIR + "/" + filename)
   rescue Exception => e
-    log.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
+    IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
   end
-  log.info("DELETE PICTURE #{filename} / #{request.ip} / #{request.user_agent}")
+  IPDConfig::LOG_HANDLE.info("DELETE PICTURE #{filename} / #{request.ip} / #{request.user_agent}")
   return "DONE"
 end
 
@@ -102,7 +100,7 @@ get '/picture/show/user/:id_user' do
 	random_id = IPDPicture.get_smart_random_id(request)
 	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
-	  log.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
 	  raise if i == 5
 	  next
@@ -113,7 +111,7 @@ get '/picture/show/user/:id_user' do
     # use own error class
     # this is catch all :/
     rescue Exception => e
-      log.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+      IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
       @msg = "No pictures."
       halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
     end
@@ -212,7 +210,7 @@ get '/*' do
 	random_id = IPDPicture.get_smart_random_id(request)
 	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
-	  log.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
 	  raise if i == 5
 	  next
@@ -223,7 +221,7 @@ get '/*' do
     # use own error class
     # this is catch all :/
     rescue Exception => e
-      log.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+      IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
       @msg = "No pictures."
       halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
     end
