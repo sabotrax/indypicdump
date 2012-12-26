@@ -69,7 +69,7 @@ IPDConfig::LOG_HANDLE.info("MAILS #{mail.length}/#{IPDConfig::FETCH_MAILS}")
 picstack = []
 
 ##############################
-# extract picture attachements
+# extract picture attachments
 
 mail.each do |m|
   m.attachments.each do | attachment |
@@ -79,6 +79,19 @@ mail.each do |m|
       # "downcase" only works in the ASCII region
       email = m.from[0].downcase
       user = IPDUser.load_by_email(email)
+      # drop pictures smaller than IPDConfig::PIC_MIN_SIZE
+      img = Magick::Image::from_blob(attachment.body.decoded)[0]
+      if img.columns >= img.rows and img.columns < IPDConfig::PIC_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PIC_MIN_SIZE
+	if user
+	  msg = IPDMessage.new
+	  msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
+	  msg.time_created = m.date.to_time.to_i
+	  msg.id_user = user.id
+	  msg.save
+	  IPDConfig::LOG_HANDLE.info("PIC TOO SMALL FROM #{m.from[0].downcase} SIZE #{img.columns}x#{img.rows}")
+	end
+	next
+      end
       # check for duplicate pictures
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
       result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
@@ -89,7 +102,7 @@ mail.each do |m|
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
-	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{ m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
+	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
 	# CAUTION
 	# we allow duplicates in test mode
 	next unless test
@@ -108,7 +121,7 @@ mail.each do |m|
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{dump_alias} FROM #{ m.from[0].downcase}")
+	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{dump_alias} FROM #{m.from[0].downcase}")
 	  next
 	end
       end

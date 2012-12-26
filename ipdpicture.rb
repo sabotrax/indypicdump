@@ -89,14 +89,14 @@ class IPDPicture
       #puts IPDTest.random_distribution(1000, randnum)
 
       # show newer pics more often
-      span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
+      span = Time.now.to_i - IPDConfig::PIC_DISPLAY_MOD_SPAN
       # get new pictures
       result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_send > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
 	weighted = []
-	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD)).each do
+	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PIC_DISPLAY_MOD)).each do
 	  weighted.push(rand(randnum.length))
 	end
 	# merge
