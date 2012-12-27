@@ -184,6 +184,18 @@ post '/dump/create/?' do
 end
 
 ##############################
+get '/admin/pool/show' do
+  IPDPicture.random_pool.to_json
+end
+
+##############################
+get '/admin/pool/empty' do
+  protected!
+  IPDPicture.random_pool = {}
+  IPDPicture.random_pool.to_json
+end
+
+##############################
 get '/' do
   slim :landing, :pretty => IPDConfig::RENDER_PRETTY
 end

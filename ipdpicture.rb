@@ -22,6 +22,10 @@ class IPDPicture
   @random_pool = {}
   @clients = {}
 
+  class << self
+    attr_accessor :random_pool
+  end
+
   ##############################
   def self.get_random_id(request)
 
