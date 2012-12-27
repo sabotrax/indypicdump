@@ -52,14 +52,14 @@ unless test
       :port       => IPDConfig::POP3_PORT,
       :user_name  => IPDConfig::POP3_USER,
       :password   => IPDConfig::POP3_PASS,
-      :enable_ssl => true
+      :enable_ssl => IPDConfig::POP3_SSL
   end
 end
 
 unless test
   # TODO
   # is "asc" newest or oldest first? should be oldest
-  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -108,22 +108,20 @@ mail.each do |m|
 	next unless test
       end
       # check for existing dump
-      # better
-      # IPDDump.is_in_dump?(m)
-      dump_alias = ""
-      unless m.subject.nil? and m.subject != ""
-	dump_alias = m.subject.downcase
-	dump_alias.tr!(" ", "-")
+      unless IPDDump.is_dump?(m.to[0].to_s)
 	# notify existing users
-	unless IPDDump.dump.has_key?(dump_alias)
+	if user
 	  msg = IPDMessage.new
 	  msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{dump_alias} FROM #{m.from[0].downcase}")
-	  next
+	  unknown_dump = m.to[0].to_s.downcase
+	  unknown_dump.sub!(/@.+$/, "")
+	  unknown_dump.tr!(" ", "-")
+	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{m.from[0].downcase}")
 	end
+	next
       end
 
       IPDConfig::LOG_HANDLE.info("SENDER #{email}")
@@ -142,7 +140,7 @@ mail.each do |m|
       pic.time_send = m.date.to_time.to_i
       pic.id_user = user.id
       pic.original_hash = pic_hash
-      pic.id_dump = IPDDump.dump[dump_alias] if IPDDump.dump.has_key?(dump_alias)
+      pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.is_dump?(m.to[0].to_s)
       picstack.push(pic)
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}

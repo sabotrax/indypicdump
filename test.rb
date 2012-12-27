@@ -83,4 +83,3 @@
 #puts user.inspect
 #user = IPDUser.load_by_email("mail1@test.org")
 #puts user.inspect
-

@@ -39,6 +39,21 @@ class IPDDump
     self.load
   end
 
+  def self.is_dump?(s)
+    is_dump = false
+    is_dump = true if id_dump(s) != 0
+    return is_dump
+  end
+
+  def self.id_dump(s)
+    id_dump = 0
+    dump_alias = s.downcase
+    dump_alias.sub!(/@.+$/, "")
+    dump_alias.tr!(" ", "-")
+    id_dump = dump[dump_alias] if dump.has_key?(dump_alias)
+    return id_dump
+  end
+
   attr_accessor :id, :alias, :time_created
 
   def initialize
