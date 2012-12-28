@@ -40,8 +40,8 @@ module IPDConfig
   # Picture
   POP3_HOST = 'localhost'
   POP3_PORT = 110
-  POP3_USER = 'schommer'
-  POP3_PASS = 'ashvowJad4'
+  POP3_USER = ''
+  POP3_PASS = ''
   POP3_SSL = false
   FETCH_MAILS = 5
   TMP_DIR = PATH + '/tmp'

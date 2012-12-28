@@ -134,13 +134,16 @@ mail.each do |m|
 	IPDConfig::LOG_HANDLE.info("IS NEW USER \"#{user.nick}\"")
       end
       # generate unique filename
-      filename = Time.now.to_f.to_s + File.extname(attachment.filename)
+      now = Time.now
+      filename = now.to_f.to_s + File.extname(attachment.filename)
+      path = Time.new(now.year, now.month, now.day).to_i.to_s
       pic = IPDPicture.new
       pic.filename = filename
       pic.time_send = m.date.to_time.to_i
       pic.id_user = user.id
       pic.original_hash = pic_hash
       pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.is_dump?(m.to[0].to_s)
+      pic.path = path
       picstack.push(pic)
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
@@ -178,12 +181,16 @@ picstack.each do |pic|
   end
   img.resize_to_fit!(resize) if resize
   begin
-   img.write(IPDConfig::PIC_DIR + "/" + pic.filename)
+    unless Dir.exists?(IPDConfig::PIC_DIR + "/" + pic.path)
+      Dir.mkdir(IPDConfig::PIC_DIR + "/" + pic.path)
+      IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{pic.path}")
+    end
+    img.write(IPDConfig::PIC_DIR + "/" + pic.path + "/" + pic.filename)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash, id_dump) VALUES (?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash, pic.id_dump])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash, pic.id_dump, pic.path])
   # delete tmp files 
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)

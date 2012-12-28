@@ -72,16 +72,18 @@ get '/picture/delete/:filename' do
   end
   # check if picture exists
   result = []
-  result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE filename = ?", [filename])
+  result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [filename])
   return "FILE NOT FOUND ERROR" if result.empty?
+  id = result[0][0]
+  path = result[0][1]
   # delete
   # TODO
   # what's a delete's return val?
-  IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [result[0][0]])
+  IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
   # TODO
   # what if picture is served at this moment? retry?
   begin
-    File.unlink(IPDConfig::PIC_DIR + "/" + filename)
+    File.unlink(IPDConfig::PIC_DIR + "/" + path + "/" + filename)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
   end
@@ -98,7 +100,7 @@ get '/picture/show/user/:id_user' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
@@ -116,12 +118,14 @@ get '/picture/show/user/:id_user' do
       halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
     end
     @pic = IPDPicture.new
+    @pic.id = rnd_picture[0][0]
     @pic.filename = rnd_picture[0][1]
     @pic.time_taken = rnd_picture[0][2]
     @pic.time_send = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
-    @user.nick = rnd_picture[0][5]
+    @user.nick = rnd_picture[0][6]
+    @pic.path = rnd_picture[0][5]
 
     slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
@@ -220,7 +224,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
@@ -238,12 +242,14 @@ get '/*' do
       halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
     end
     @pic = IPDPicture.new
+    @pic.id = rnd_picture[0][0]
     @pic.filename = rnd_picture[0][1]
     @pic.time_taken = rnd_picture[0][2]
     @pic.time_send = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
-    @user.nick = rnd_picture[0][5]
+    @user.nick = rnd_picture[0][6]
+    @pic.path = rnd_picture[0][5]
 
     slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else

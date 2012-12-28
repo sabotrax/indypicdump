@@ -183,14 +183,35 @@ class IPDPicture
     return random_id
   end
 
-  attr_accessor :filename, :time_taken, :time_send, :id_user, :original_hash, :id_dump
+  ##############################
+  def self.load(id)
+    found = IPDConfig::DB_HANDLE.execute("SELECT * FROM picture WHERE id = ?", [id])
+    if found.any?
+      picture = self.new
+      picture.id = found[0][0]
+      picture.filename = found[0][1]
+      picture.time_taken = found[0][2]
+      picture.time_send = found[0][3]
+      picture.id_user = found[0][4]
+      picture.original_hash = found[0][5]
+      picture.id_dump = found[0][6]
+      picture.path = found[0][7]
+    else
+      picture = nil
+    end
+    return picture
+  end
+
+  attr_accessor :id, :filename, :time_taken, :time_send, :id_user, :original_hash, :id_dump, :path
 
   def initialize
+    @id = 0
     @filename = ""
     @time_taken = 0
     @time_send = 0
     @id_user = 0
     @original_hash = ""
     @id_dump = 0
+    @path = ""
   end
 end
