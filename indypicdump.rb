@@ -139,7 +139,7 @@ mail.each do |m|
       path = Time.new(now.year, now.month, now.day).to_i.to_s
       pic = IPDPicture.new
       pic.filename = filename
-      pic.time_send = m.date.to_time.to_i
+      pic.time_sent = m.date.to_time.to_i
       pic.id_user = user.id
       pic.original_hash = pic_hash
       pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.is_dump?(m.to[0].to_s)
@@ -190,7 +190,7 @@ picstack.each do |pic|
     IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_send, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_send, pic.id_user, pic.original_hash, pic.id_dump, pic.path])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_sent, pic.id_user, pic.original_hash, pic.id_dump, pic.path])
   # delete tmp files 
   begin
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)

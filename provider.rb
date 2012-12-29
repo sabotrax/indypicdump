@@ -100,7 +100,7 @@ get '/picture/show/user/:id_user' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
@@ -121,7 +121,7 @@ get '/picture/show/user/:id_user' do
     @pic.id = rnd_picture[0][0]
     @pic.filename = rnd_picture[0][1]
     @pic.time_taken = rnd_picture[0][2]
-    @pic.time_send = rnd_picture[0][3]
+    @pic.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]
@@ -196,6 +196,7 @@ end
 get '/admin/pool/empty' do
   protected!
   IPDPicture.random_pool = {}
+  IPDConfig::LOG_HANDLE.info("POOL EMPTIED #{request.ip} / #{request.user_agent}")
   IPDPicture.random_pool.to_json
 end
 
@@ -224,7 +225,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_send, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	if rnd_picture.empty?
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
 	  i += 1
@@ -245,7 +246,7 @@ get '/*' do
     @pic.id = rnd_picture[0][0]
     @pic.filename = rnd_picture[0][1]
     @pic.time_taken = rnd_picture[0][2]
-    @pic.time_send = rnd_picture[0][3]
+    @pic.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]

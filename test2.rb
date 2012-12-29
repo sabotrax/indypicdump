@@ -34,7 +34,7 @@ puts "VERTEILUNG URSPRUNG"
 puts x.to_s
 
 yd = Time.now.to_i - span
-result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [yd])
+result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_sent > ?", [yd])
 #puts result.to_s
 
 result.each do |row|
@@ -90,5 +90,5 @@ puts s
 #puts a.to_s
 
 #yd = Time.now.to_i - 86400
-#result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_send > ?", [yd])
+#result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT count(0) - 1 FROM picture p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM picture p2 WHERE time_sent > ?", [yd])
 #puts result.to_s

@@ -95,7 +95,7 @@ class IPDPicture
       # show newer pics more often
       span = Time.now.to_i - IPDConfig::PIC_DISPLAY_MOD_SPAN
       # get new pictures
-      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_send > ?", [span])
+      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_sent > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
@@ -191,7 +191,7 @@ class IPDPicture
       picture.id = found[0][0]
       picture.filename = found[0][1]
       picture.time_taken = found[0][2]
-      picture.time_send = found[0][3]
+      picture.time_sent = found[0][3]
       picture.id_user = found[0][4]
       picture.original_hash = found[0][5]
       picture.id_dump = found[0][6]
@@ -202,13 +202,13 @@ class IPDPicture
     return picture
   end
 
-  attr_accessor :id, :filename, :time_taken, :time_send, :id_user, :original_hash, :id_dump, :path
+  attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path
 
   def initialize
     @id = 0
     @filename = ""
     @time_taken = 0
-    @time_send = 0
+    @time_sent = 0
     @id_user = 0
     @original_hash = ""
     @id_dump = 0

@@ -46,7 +46,7 @@ html lang="en"
         - tt = "unknown"
       - else
         - tt = Time.at(@pic.time_taken).strftime("%e.%m.%Y %H:%M")
-      - ts = Time.at(@pic.time_send).strftime("%e.%m.%Y %H:%M")
+      - ts = Time.at(@pic.time_sent).strftime("%e.%m.%Y %H:%M")
       - if @user.has_messages?
         - mt = "!"
       | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.id}" id="landing">#{@user.nick}#{mt}</a>
