@@ -36,6 +36,8 @@ module IPDConfig
   ENVIRONMENT = :development
   RECAPTCHA_PUB_KEY = ''
   RECAPTCHA_PRIV_KEY = ''
+  EMAIL_SELF = 'busybee@indypicdump.com'
+  EMAIL_OPERATOR = ''
 
   # Picture
   POP3_HOST = 'localhost'
@@ -52,6 +54,7 @@ module IPDConfig
   PIC_DISPLAY_MOD_SPAN = 86000
   PIC_DISPLAY_MOD = 0.1
   PIC_MIN_SIZE = 400
+  REPORT_NEW_TIMER = 3600
 
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'

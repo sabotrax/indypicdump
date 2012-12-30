@@ -1,0 +1,11 @@
+doctype html
+html
+  head
+    title New pictures
+  body
+    p New pictures
+    table
+      - pics.each do |row|
+        tr
+          td <a href="http://indypicdump.com/pics/#{row[1]}/#{row[0]}">#{row[2]} @ #{row[3]}</a>
+          td <a href="http://indypicdump.com/picture/delete/#{row[0]}">l&ouml;schen</a>

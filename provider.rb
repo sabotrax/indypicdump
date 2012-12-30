@@ -24,6 +24,7 @@ require 'json'
 require 'sqlite3'
 require 'slim'
 require 'rack/recaptcha'
+require 'mail'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
@@ -39,6 +40,33 @@ Rack::Recaptcha.test_mode! if IPDConfig::ENVIRONMENT == :development
 ##############################
 configure do
   IPDDump.load_dump_map
+end
+
+##############################
+Thread.abort_on_exception = true
+Thread.new do
+  class Env
+    attr_accessor :pics
+  end
+  env = Env.new
+  while true do
+    now = Time.now
+    sleep IPDConfig::REPORT_NEW_TIMER
+    result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now.to_i])
+    if result.any?
+      env.pics = result
+      t = Slim::Template.new(IPDConfig::PATH + "/views/mail.slim", :pretty => IPDConfig::RENDER_PRETTY)
+      b = t.render(env)
+      mail = Mail.new do
+	from IPDConfig::EMAIL_SELF
+	to IPDConfig::EMAIL_OPERATOR
+	subject "new pictures"
+	body b
+      end
+      mail.delivery_method :sendmail
+      mail.deliver
+    end
+  end
 end
 
 ##############################
