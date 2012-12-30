@@ -47,7 +47,7 @@ helpers do
     unless authorized?
       response['WWW-Authenticate'] = %(Basic realm="Restricted Area")
       @msg = "Not authorized."
-      halt [401, slim(:error, :pretty => IPDConfig::RENDER_PRETTY)]
+      halt [401, slim(:notice, :pretty => IPDConfig::RENDER_PRETTY)]
     end
   end
 
@@ -115,7 +115,7 @@ get '/picture/show/user/:id_user' do
     rescue Exception => e
       IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
       @msg = "No pictures."
-      halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
     @pic = IPDPicture.new
     @pic.id = rnd_picture[0][0]
@@ -127,7 +127,7 @@ get '/picture/show/user/:id_user' do
     @user.nick = rnd_picture[0][6]
     @pic.path = rnd_picture[0][5]
 
-    slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
+    slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
     # TODO
     # better: Pool not found. You might create it? w link
@@ -140,7 +140,7 @@ get '/user/show/:id_user' do
   @user = IPDUser::load_by_id(params[:id_user])
   unless @user
     @msg = "No such user."
-    halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
   posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])
   @user.posts = posts[0][0]
@@ -184,7 +184,7 @@ post '/dump/create/?' do
   @msg = "OK, now add pictures to <a href=\"/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
   # TODO
   # "error" should be "notification"
-  slim :error, :pretty => IPDConfig::RENDER_PRETTY
+  slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
@@ -214,7 +214,7 @@ end
 ##############################
 not_found do
   @msg = "Not found."
-  slim :error, :pretty => IPDConfig::RENDER_PRETTY
+  slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
@@ -240,7 +240,7 @@ get '/*' do
     rescue Exception => e
       IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
       @msg = "No pictures."
-      halt slim :error, :pretty => IPDConfig::RENDER_PRETTY
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
     @pic = IPDPicture.new
     @pic.id = rnd_picture[0][0]
@@ -252,7 +252,7 @@ get '/*' do
     @user.nick = rnd_picture[0][6]
     @pic.path = rnd_picture[0][5]
 
-    slim :index, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
+    slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
     # TODO
     # better: Pool not found. You might create it? w link
