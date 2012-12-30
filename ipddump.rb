@@ -36,7 +36,7 @@ class IPDDump
 
   def self.reload_dump_map
     self.dump = {}
-    self.load
+    self.load_dump_map
   end
 
   def self.is_dump?(s)

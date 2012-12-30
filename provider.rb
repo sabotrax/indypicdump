@@ -166,6 +166,7 @@ end
 
 ##############################
 post '/dump/create/?' do
+  protected!
   # CAUTION
   # "downcase" only works in the ASCII region
   dump_alias = params[:dump].strip.downcase
@@ -181,9 +182,9 @@ post '/dump/create/?' do
   dump = IPDDump.new
   dump.alias = dump_alias
   dump.save
+  IPDDump.reload_dump_map
+  IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias} / #{request.ip} / #{request.user_agent}")
   @msg = "OK, now add pictures to <a href=\"/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
-  # TODO
-  # "error" should be "notification"
   slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
