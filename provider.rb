@@ -61,7 +61,10 @@ Thread.new do
 	from IPDConfig::EMAIL_SELF
 	to IPDConfig::EMAIL_OPERATOR
 	subject "new pictures"
-	body b
+	html_part do
+	  content_type "text/html; charset=UTF-8"
+	  body b
+	end
       end
       mail.delivery_method :sendmail
       mail.deliver
@@ -129,8 +132,15 @@ get '/picture/show/user/:id_user' do
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
 	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	err = false
 	if rnd_picture.empty?
+	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	elsif !File.exists?(IPDConfig::PIC_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
+	  err = true
+	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
+	end
+	if err
 	  i += 1
 	  raise if i == 5
 	  next
@@ -255,8 +265,15 @@ get '/*' do
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
 	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	err = false
 	if rnd_picture.empty?
+	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	elsif !File.exists?(IPDConfig::PIC_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
+	  err = true
+	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
+	end
+	if err
 	  i += 1
 	  raise if i == 5
 	  next
