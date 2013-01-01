@@ -92,21 +92,6 @@ mail.each do |m|
 	end
 	next
       end
-      # check for duplicate pictures
-      pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
-      result = IPDConfig::DB_HANDLE.execute('SELECT id, id_user FROM picture WHERE original_hash = ?', [pic_hash])
-      # notify existing users
-      if user and result.any?
-	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
-	msg.time_created = m.date.to_time.to_i
-	msg.id_user = user.id
-	msg.save
-	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{m.from[0].downcase} ORIGINAL ID #{result[0][0]}")
-	# CAUTION
-	# we allow duplicates in test mode
-	next unless test
-      end
       # check for existing dump
       unless IPDDump.is_dump?(m.to[0].to_s)
 	# notify existing users
@@ -122,6 +107,24 @@ mail.each do |m|
 	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{m.from[0].downcase}")
 	end
 	next
+      end
+      # check for duplicate pictures
+      pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
+      id_dump = IPDDump.id_dump(m.to[0].to_s)
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{id_dump}\" WHERE original_hash = ?", [pic_hash])
+      if result.any?
+	# notify existing users
+	if user
+	  msg = IPDMessage.new
+	  msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
+	  msg.time_created = m.date.to_time.to_i
+	  msg.id_user = user.id
+	  msg.save
+	  IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{m.from[0].downcase} ORIGINAL ID #{result[0][0]} DUMP #{id_dump}")
+	end
+	# CAUTION
+	# we allow duplicates in test mode
+	next unless test
       end
 
       IPDConfig::LOG_HANDLE.info("SENDER #{email}")
