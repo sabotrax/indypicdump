@@ -51,7 +51,7 @@ class IPDPicture
       # retry? (The Ruby Programming Language, 162)
       rescue Exception => e
 	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
-	IPDConfig::LOG_HANDLE.info("USING RANDOM NUMBER FALLBACK GENERATOR")
+	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       
@@ -86,7 +86,7 @@ class IPDPicture
       # retry? (The Ruby Programming Language, 162)
       rescue Exception => e
 	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
-	IPDConfig::LOG_HANDLE.info("USING RANDOM NUMBER FALLBACK GENERATOR")
+	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
       

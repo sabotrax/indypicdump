@@ -55,9 +55,32 @@ class IPDUser
   end
 
   ##############################
-  def self.is_user?(id)
+  def self.load_by_nick(nick)
+    found = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [nick.undash])
+    if found.any?
+      user = self.new
+      user.id = found[0][0]
+      user.nick = found[0][1]
+      user.time_created = found[0][2]
+      email = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
+      email.each do |row|
+	user.email = row[1]
+      end
+    else
+      user = nil
+    end
+    return user
+  end
+
+  ##############################
+  def self.is_user?(i)
+    result = []
     is_user = false
-    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [id])
+    if i =~ /^[1-9]\d*$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [i])
+    elsif i =~ /^[a-zA-Z-]+$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [i.undash])
+    end
     is_user = true if result.any?
     return is_user
   end

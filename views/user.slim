@@ -3,7 +3,7 @@ br
 p
   - if @user.posts > 1
     - ps = "s"
-  | You have posted <a href="/picture/show/user/#{@user.id}">#{@user.posts} picture#{ps}</a>.
+  | You have posted <a href="/picture/show/user/#{@user.nick.dash}">#{@user.posts} picture#{ps}</a>.
   br
   - if @msgs.empty?
     | You have no messages.

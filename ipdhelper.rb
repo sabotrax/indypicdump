@@ -18,8 +18,9 @@
 class Sinatra::Request
   def dump
     # user dump
-    if self.path =~ /^\/picture\/show\/user\/([1-9][0-9]*)$/
-      dump = "ud" + $1.to_s
+    if self.path =~ /^\/picture\/show\/user\/([a-zA-Z][a-zA-Z-]*)$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [$1.undash])
+      dump = "ud" + result[0][0].to_s if result.any?
     # TODO
     # improve regex
     # "-" must not be the last char
@@ -39,5 +40,15 @@ class Sinatra::Request
       has_dump = false
     end
     return has_dump
+  end
+end
+
+class String
+  def dash
+    self.to_s.downcase.tr(" ", "-")
+  end
+
+  def undash
+    self.to_s.downcase.tr("-", " ")
   end
 end

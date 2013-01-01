@@ -123,9 +123,9 @@ get '/picture/delete/:filename' do
 end
 
 ##############################
-get '/picture/show/user/:id_user' do
-  # get here from /pic/show/user/:id_user/random (and others)
-  if request.has_dump? and IPDUser.is_user?(params[:id_user])
+get '/picture/show/user/:nick' do
+  # get here from /pic/show/user/:nick/random (and others)
+  if request.has_dump? and IPDUser.is_user?(params[:nick])
     id_dump = request.dump
     begin
       i = 0
@@ -174,15 +174,15 @@ get '/picture/show/user/:id_user' do
 end
 
 ##############################
-get '/user/show/:id_user' do
-  @user = IPDUser::load_by_id(params[:id_user])
+get '/user/show/:nick' do
+  @user = IPDUser::load_by_nick(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [params[:id_user]])
+  posts = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ?", [@user.id])
   @user.posts = posts[0][0]
-  messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [params[:id_user], Time.now.to_i - IPDConfig::MSG_SHOW_SPAN])
+  messages = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE id_user = ? AND time_created >= ? ORDER BY time_created DESC", [@user.id, Time.now.to_i - IPDConfig::MSG_SHOW_SPAN])
   @msgs = []
   messages.each do |row|
     @msg = IPDMessage.new
@@ -190,7 +190,7 @@ get '/user/show/:id_user' do
     @msg.message_id = row[1]
     @msg.message_text = IPDConfig::MSG[row[1]]
     @msg.time_created = row[2]
-    @msg.id_user = params[:id_user]
+    @msg.id_user = @user.id
     @msgs.push(@msg)
   end
   slim :user, :pretty => IPDConfig::RENDER_PRETTY

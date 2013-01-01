@@ -49,7 +49,7 @@ html lang="en"
       - ts = Time.at(@pic.time_sent).strftime("%e.%m.%Y %H:%M")
       - if @user.has_messages?
         - mt = "!"
-      | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.id}" id="landing">#{@user.nick}#{mt}</a>
+      | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.nick.dash}" id="landing">#{@user.nick}#{mt}</a>
       br
       <img src="/pics/#{@pic.path}/#{@pic.filename}" id="image" name="image"><br />
       | <a href="/" id="landing">&hearts; indypicdump</a> | <a href="/about.html" id="landing">about</a>
