@@ -24,6 +24,7 @@ class IPDPicture
 
   class << self
     attr_accessor :random_pool
+    attr_reader :clients
   end
 
   ##############################
@@ -84,6 +85,7 @@ class IPDPicture
 	randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
       # TODO
       # retry? (The Ruby Programming Language, 162)
+      # better use own error class vs. catchall
       rescue Exception => e
 	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
 	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
@@ -128,16 +130,12 @@ class IPDPicture
     # multi or user dump
     id_dump = IPDDump.dump[request.dump] || request.dump
 
-    # remove old clients
     now = Time.now.to_i
+    # update recurring clients
     if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
-      # TODO
-      # log timeouts w client data from request
-      if now - @clients[key][id_dump][:time_created] > IPDConfig::CLIENT_TIMEOUT
-	@clients.delete(key)
-      end
+      @clients[key][id_dump][:time_created] = now
     end
-
+    
     # - an array of [some_id, other_id, third_id,] could get new ids array.length times
     # that are already members
     # we then clear the array

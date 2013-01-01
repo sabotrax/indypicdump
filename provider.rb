@@ -73,6 +73,29 @@ Thread.new do
 end
 
 ##############################
+Thread.new do
+  while true do
+    sleep IPDConfig::CLIENT_TIMEOUT * 3
+    now = Time.now
+    s1 = IPDPicture.clients.size
+    IPDPicture.clients.each_key do |client|
+      IPDPicture.clients[client].each_key do |dump|
+	if now.to_i - IPDPicture.clients[client][dump][:time_created] > IPDConfig::CLIENT_TIMEOUT
+	  IPDPicture.clients[client].delete(dump)
+	end
+      end
+      IPDPicture.clients.delete(client) if IPDPicture.clients[client].size == 0
+    end
+    if s1 != IPDPicture.clients.size
+      # TODO
+      # better lock clients hash through this operations
+      # clients could have been changed somewhere else (by adding new clients)
+      IPDConfig::LOG_HANDLE.info("REMOVED STALE CLIENTS #{s1 - IPDPicture.clients.size}")
+    end
+  end
+end
+
+##############################
 helpers do
   def protected!
     unless authorized?
