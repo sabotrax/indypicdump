@@ -50,9 +50,9 @@ Thread.new do
   end
   env = Env.new
   while true do
-    now = Time.now
+    now_t1 = Time.now
     sleep IPDConfig::REPORT_NEW_TIMER
-    result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now.to_i])
+    result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now_t1.to_i])
     if result.any?
       env.pics = result
       t = Slim::Template.new(IPDConfig::PATH + "/views/mail.slim", :pretty => IPDConfig::RENDER_PRETTY)
@@ -76,11 +76,11 @@ end
 Thread.new do
   while true do
     sleep IPDConfig::CLIENT_TIMEOUT * 3
-    now = Time.now
+    now_t2 = Time.now
     s1 = IPDPicture.clients.size
     IPDPicture.clients.each_key do |client|
       IPDPicture.clients[client].each_key do |dump|
-	if now.to_i - IPDPicture.clients[client][dump][:time_created] > IPDConfig::CLIENT_TIMEOUT
+	if now_t2.to_i - IPDPicture.clients[client][dump][:time_created] > IPDConfig::CLIENT_TIMEOUT
 	  IPDPicture.clients[client].delete(dump)
 	end
       end
@@ -238,6 +238,12 @@ post '/dump/create/?' do
   result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
   if result.any?
     @msg = "Sry, this dump already exists."
+    halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  reserved = File.readlines(IPDConfig::RESERVED)
+  # \n chomp hack
+  if reserved.include?(dump_alias.undash + "\n")
+    @msg = "Sry, reserved word."
     halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
   end
   dump = IPDDump.new

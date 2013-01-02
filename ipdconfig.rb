@@ -51,8 +51,8 @@ module IPDConfig
   GEN_RANDOM_IDS = 200
   NOSHOW_LAST_IDS = 8
   CLIENT_TIMEOUT = 300
-  PIC_DISPLAY_MOD_SPAN = 86000
-  PIC_DISPLAY_MOD = 0.1
+  PIC_DISPLAY_MOD_SPAN = 259200
+  PIC_DISPLAY_MOD = 0.07
   PIC_MIN_SIZE = 400
   REPORT_NEW_TIMER = 3600
 
@@ -70,4 +70,8 @@ module IPDConfig
   MSG_DUPLICATE_PIC = 1
   MSG_UNKNOWN_DUMP = 2
   MSG_PIC_TOO_SMALL = 3
+
+  # Dump
+  # list of names dumps may not have
+  RESERVED = PATH + '/data/reserved.txt'
 end
