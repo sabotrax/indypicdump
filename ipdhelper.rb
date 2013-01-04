@@ -15,6 +15,8 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
+require 'sinatra'
+
 class Sinatra::Request
   def dump
     # user dump

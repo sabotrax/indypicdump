@@ -16,6 +16,7 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 require 'logger'
+require 'sqlite3'
 
 module IPDConfig
   # General
@@ -42,8 +43,8 @@ module IPDConfig
   # Picture
   POP3_HOST = 'localhost'
   POP3_PORT = 110
-  POP3_USER = ''
-  POP3_PASS = ''
+  POP3_USER = 'schommer'
+  POP3_PASS = 'ashvowJad4'
   POP3_SSL = false
   FETCH_MAILS = 5
   TMP_DIR = PATH + '/tmp'
@@ -51,6 +52,8 @@ module IPDConfig
   GEN_RANDOM_IDS = 200
   NOSHOW_LAST_IDS = 8
   CLIENT_TIMEOUT = 300
+  # TODO cleanup
+  # remove "PIC"
   PIC_DISPLAY_MOD_SPAN = 259200
   PIC_DISPLAY_MOD = 0.07
   PIC_MIN_SIZE = 400
@@ -59,6 +62,7 @@ module IPDConfig
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
+  REQUEST_ACCEPT_SPAN = 259200
 
   # Message
   MSG_SHOW_SPAN = 604800

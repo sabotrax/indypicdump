@@ -23,6 +23,8 @@ require 'mail'
 require 'RMagick'
 require 'sqlite3'
 require 'date'
+require 'stalker'
+require 'securerandom'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdtest'
@@ -60,6 +62,7 @@ unless test
   # TODO
   # is "asc" newest or oldest first? should be oldest
   mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -68,11 +71,99 @@ IPDConfig::LOG_HANDLE.info("MAILS #{mail.length}/#{IPDConfig::FETCH_MAILS}")
 
 picstack = []
 
-##############################
-# extract picture attachments
-
 mail.each do |m|
+
+  ##############################
+  # process user management mail
+  # TODO
+  # maildomain -> variable
+  if m.to[0] == "me@indypicdump.com"
+    case m.subject
+      # i am
+      when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)$/
+	nick = $2.undash
+	if IPDUser.is_user?($2)
+	  # check if requesting email address is already bound to this username
+	  # TODO
+	  # check if reqeusting email address is already bound to _some_ username and send info mail "you are already bount to username x y"
+	  result = IPDConfig::DB_HANDLE.execute("SELECT e.address, u.nick FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE u.nick = ? ORDER BY e.time_created ASC", [nick])
+	  already_are = false
+	  result.each do |row|
+	    if row[0] == m.from[0]
+	      # TODO
+	      # better i_am_err_already_are
+	      Stalker.enqueue("email.send", :to => m.from[0], :already_are => true, :from => m.from[0], :nick => nick, :subject => "Notice")
+	      already_are = true
+	      break
+	    end
+	  end
+	  next if already_are
+	  # check duplicate requests and ignore
+	  action = ["i am", $2, m.from[0]].join(",")
+	  result2 = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request where action = ?", [action])
+	  next if result2.any?
+	  # send request to owner of username
+	  request_code = SecureRandom.hex(16).downcase
+	  IPDConfig::DB_HANDLE.execute("INSERT INTO user_request (action, code, time_created) VALUES (?, ?, ?)", [action, request_code, Time.now.to_i]) 
+	  Stalker.enqueue("email.send", :to => result[0][0], :i_am_request_code => true, :code => request_code, :from => m.from[0], :nick => nick, :subject => "Notice")
+	else
+	  # TODO
+	  # better i_am_err_no_user
+	  Stalker.enqueue("email.send", :to => m.from[0], :no_user => true, :from => m.from[0], :nick => nick, :subject => "Notice")
+	end
+      else
+	# i do not understand $1?
+    end
+    next
+  end
+  if m.to[0] == "busybee@indypicdump.com"
+    case m.body.decoded
+      # work request codes
+      when /Request code (\h+)/
+	code = $1.downcase
+	result = IPDConfig::DB_HANDLE.execute("SELECT action FROM user_request WHERE code = ?", [code])
+	if result.any?
+	  action = result[0][0].split(",")
+	  case action[0]
+	    # i am
+	    when "i am"
+	      begin
+		# update mapping of email addresses to users
+		IPDConfig::DB_HANDLE.transaction
+		result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [action[1]])
+		id_user = result[0][0]
+		result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [action[2]])
+		id_address = result[0][0] if result.any?
+		# save new addresses
+		if result.empty?
+		  IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [action[2], Time.now.to_i])
+		  result2 = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+		  IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [id_user, result2[0][0]])
+		# update existing
+		else
+		  result2 = IPDConfig::DB_HANDLE.execute("SELECT id_user FROM mapping_user_email_address WHERE id_address = ?", [id_address])
+		  IPDConfig::DB_HANDLE.execute("UPDATE mapping_user_email_address SET id_user = ? WHERE id_user = ? AND id_address = ?", [id_user, result2[0][0], id_address])
+		end
+		IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE code = ?", [$1.downcase])
+		IPDConfig::LOG_HANDLE.info("USER REQUEST BOUND ADDRESS TO USER #{action[2]} -> #{action[1]}")
+	      rescue SQLite3::Exception => e
+		IPDConfig::DB_HANDLE.rollback
+		IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE UPDATING USER EMAIL MAPPING #{action.to_s} / #{e.message} / #{e.backtrace.shift}")
+		raise
+	      end
+	      IPDConfig::DB_HANDLE.commit
+	  end
+	else
+	  # send error mail
+	end
+    end
+    next
+  end
+
   m.attachments.each do | attachment |
+
+    ##############################
+    # extract picture attachments
     if (attachment.content_type.start_with?('image/'))
       # load user
       # CAUTION
