@@ -32,10 +32,10 @@ job 'email.send' do |args|
   env.from = args["from"]
   env.nick = args["nick"]
   env.code = args["code"]
-  if args["no_user"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["already_are"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  if args["i_am_no_user"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["i_am_already_are"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
   elsif args["i_am_request_code"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
   else

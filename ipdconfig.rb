@@ -43,8 +43,8 @@ module IPDConfig
   # Picture
   POP3_HOST = 'localhost'
   POP3_PORT = 110
-  POP3_USER = 'schommer'
-  POP3_PASS = 'ashvowJad4'
+  POP3_USER = ''
+  POP3_PASS = ''
   POP3_SSL = false
   FETCH_MAILS = 5
   TMP_DIR = PATH + '/tmp'
@@ -63,6 +63,7 @@ module IPDConfig
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
   REQUEST_ACCEPT_SPAN = 259200
+  EMAIL_USER_MGMT = 'me@indypicdump.com'
 
   # Message
   MSG_SHOW_SPAN = 604800
