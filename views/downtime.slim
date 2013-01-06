@@ -1,0 +1,46 @@
+doctype 5
+html lang="en"
+  head
+    meta charset="utf-8"
+    title indypicdump
+    meta name="description" content="indypicdump picture server"
+    meta name="keywords" content="pictures"
+    meta name="viewport" content="width=device-width, initial-scale=1.0"
+    link type="text/plain" rel="author" href="http://indypicdump.com/humans.txt"
+    link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css"
+    link rel="shortcut icon" href="/sitepics/favicon.ico"
+    link rel="apple-touch-icon" href="/sitepics/apple-touch-icon.png"
+    link rel="stylesheet" media="screen and (max-device-width: 900px)" type="text/css" href="/css/mobile.css"
+    link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" type="text/css" href="/css/mobile.css"
+    link rel="stylesheet" type="text/css" href="/css/all.css"
+    <!--[if IE]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    javascript:
+      // fix viewport scaling bug
+      (function(doc)
+      {
+        var addEvent = 'addEventListener',
+	  type = 'gesturestart',
+	  qsa = 'querySelectorAll',
+	  scales = [1, 5],
+	  meta = qsa in doc ? doc[qsa]('meta[name=viewport]') : [];
+ 
+        function fix()
+        {
+	  meta.content = 'width=device-width,minimum-scale=' + scales[0] + ',maximum-scale=' + scales[1];
+	  doc.removeEventListener(type, fix, true);
+        }
+ 
+        if ((meta = meta[meta.length - 1]) && addEvent in doc)
+        {
+	  fix();
+	  scales = [.25, 1.6];
+	  doc[addEvent](type, fix, true);
+        }
+      }(document));
+  body
+    #Content
+      | We're doing software upgrades. Please come back later.
+      br
+      <img src="/sitepics/hackers.jpg" id="image" name="image">
