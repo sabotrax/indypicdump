@@ -185,8 +185,8 @@ mail.each do |m|
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  IPDConfig::LOG_HANDLE.info("PIC TOO SMALL FROM #{m.from[0].downcase} SIZE #{img.columns}x#{img.rows}")
 	end
+	IPDConfig::LOG_HANDLE.info("PIC TOO SMALL FROM #{ user ? "" : "UNKOWN USER "}#{m.from[0].downcase} SIZE #{img.columns}x#{img.rows}")
 	next
       end
       # check for existing dump
@@ -198,11 +198,10 @@ mail.each do |m|
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  unknown_dump = m.to[0].to_s.downcase
-	  unknown_dump.sub!(/@.+$/, "")
-	  unknown_dump.tr!(" ", "-")
-	  IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{m.from[0].downcase}")
 	end
+	unknown_dump = m.to[0].to_s.downcase
+	unknown_dump.sub!(/@.+$/, "")
+	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{user ? "" : "UNKNOWN USER "}#{m.from[0].downcase}")
 	next
       end
       # check for duplicate pictures
@@ -217,8 +216,8 @@ mail.each do |m|
 	  msg.time_created = m.date.to_time.to_i
 	  msg.id_user = user.id
 	  msg.save
-	  IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{m.from[0].downcase} ORIGINAL ID #{result[0][0]} DUMP #{id_dump}")
 	end
+	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user ? "" : "UNKOWN USER "}#{m.from[0].downcase} ORIGINAL ID #{result[0][0]} DUMP #{id_dump}")
 	# CAUTION
 	# we allow duplicates in test mode
 	next unless test

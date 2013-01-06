@@ -138,20 +138,24 @@ class IPDUser
   ##############################
   def save
     # TODO
-    # there's a mysterious bug where new users get saved two times
-    # so instead of fixing it, we work around	
-    #
-    # looks like a sqlite3 bug
-    #found = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [self.email])
-    #return unless found.empty?
-
-    # TODO
     # add raise like in other save methods
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
-      result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
-      self.id = result[0][0]
+      # sqlite3 inserts new users twice
+      # WORKAROUND
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
+      first = true
+      id = 0
+      result.each do |row|
+	if first
+	  first = false
+	  id = row[0]
+	  next
+	end
+	IPDConfig::DB_HANDLE.execute("DELETE FROM user WHERE id = ?", [row[0]])
+      end
+      self.id = id
       self.email.each do |address|
 	IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
