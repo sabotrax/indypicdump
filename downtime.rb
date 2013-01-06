@@ -26,6 +26,6 @@ require 'ipdconfig'
 set :environment, IPDConfig::ENVIRONMENT
 
 ##############################
-get '/' do
+get '/*' do
   slim :downtime, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
 end

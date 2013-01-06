@@ -80,7 +80,7 @@ class IPDUser
     is_user = false
     if i =~ /^[1-9]\d*$/
       result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [i])
-    elsif i =~ /^[a-zA-Z\- ]+$/
+    elsif i =~ /^[a-zA-Z\- ]+(?<!-)$/
       result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [i.undash])
     end
     is_user = true if result.any?

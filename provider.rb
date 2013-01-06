@@ -36,6 +36,7 @@ set :environment, IPDConfig::ENVIRONMENT
 use Rack::Recaptcha, :public_key => IPDConfig::RECAPTCHA_PUB_KEY, :private_key => IPDConfig::RECAPTCHA_PRIV_KEY
 helpers Rack::Recaptcha::Helpers
 Rack::Recaptcha.test_mode! if IPDConfig::ENVIRONMENT == :development
+$stdout.sync = true
 
 ##############################
 configure do
@@ -55,12 +56,12 @@ Thread.new do
     result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now_t1.to_i])
     if result.any?
       env.pics = result
-      t = Slim::Template.new(IPDConfig::PATH + "/views/mail.slim", :pretty => IPDConfig::RENDER_PRETTY)
+      t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_pictures.slim", :pretty => IPDConfig::RENDER_PRETTY)
       b = t.render(env)
       mail = Mail.new do
 	from IPDConfig::EMAIL_SELF
 	to IPDConfig::EMAIL_OPERATOR
-	subject "new pictures"
+	subject "new pictures (#{result.size})"
 	html_part do
 	  content_type "text/html; charset=UTF-8"
 	  body b
@@ -232,9 +233,7 @@ post '/dump/create/?' do
   # "downcase" only works in the ASCII region
   dump_alias = params[:dump].strip.downcase
   dump_alias.tr!(" ", "-")
-  # TODO
-  # improve regex
-  redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9-]*$/ or !recaptcha_valid?
+  redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9\-]*(?<!-)$/ or !recaptcha_valid?
   result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
   if result.any?
     @msg = "Sry, this dump already exists."
