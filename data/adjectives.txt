@@ -19,9 +19,11 @@ beautiful
 bewildered
 big
 bitter
+black
 bland
 blonde
 bloody
+blue
 blunt
 blushing
 boiling
@@ -34,6 +36,7 @@ brief
 bright
 broad
 broken
+brown
 bumpy
 busy
 calm
@@ -139,7 +142,9 @@ gleaming
 glorious
 good
 graceful
+gray
 greasy
+green
 grieving
 grotesque
 grubby
@@ -205,12 +210,14 @@ obnoxious
 old
 old-fashioned
 open
+orange
 outgoing
 outrageous
 outstanding
 panicky
 perfect
 petite
+pink
 plain
 plastic
 pleasant
@@ -227,6 +234,7 @@ quiet
 rapid
 raspy
 real
+red
 relaxed
 relieved
 repulsive
@@ -271,6 +279,7 @@ solid
 sore
 sour
 sparkling
+speedy
 spicy
 splendid
 spotless
@@ -321,6 +330,7 @@ weary
 well
 wet
 whispering
+white
 wicked
 wide
 wild
@@ -330,4 +340,5 @@ wooden
 wooly
 worried
 wrong
+yellow
 young
