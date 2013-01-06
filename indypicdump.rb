@@ -78,7 +78,7 @@ mail.each do |m|
   if m.to[0] == IPDConfig::EMAIL_USER_MGMT
     case m.subject
       # i am
-      when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)$/i
+      when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)/i
 	nick = $2.undash
 	if IPDUser.is_user?(nick)
 	  # check if requesting email address is already bound to this username
@@ -93,7 +93,7 @@ mail.each do |m|
 	  end
 	  next if already_are
 	  # check duplicate requests and ignore
-	  action = ["i am", $2, m.from[0]].join(",")
+	  action = ["i am", nick, m.from[0]].join(",")
 	  result2 = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [action])
 	  next if result2.any?
 	  # send request to owner of username
@@ -109,9 +109,17 @@ mail.each do |m|
     next
   end
   if m.to[0] == IPDConfig::EMAIL_SELF
-    case m.body.decoded
+    body = ""
+    if m.multipart?
+      m.parts.each do |p|
+	body += p.decoded if p.content_type.start_with?('text/')
+      end
+    else
+      body = m.body.decoded
+    end
+    case body
       # work request codes
-      when /request code (\h+)/i
+      when /request code (\h+)/im
 	code = $1.downcase
 	result = IPDConfig::DB_HANDLE.execute("SELECT action FROM user_request WHERE code LIKE ?", [code])
 	if result.any?
