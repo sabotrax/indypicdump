@@ -4,8 +4,11 @@ html lang="en"
     | Hello,
     br
     p
-      | someone (eventually you) wants to connect the email address "#{from}" with your username "#{nick}".
+      | someone (eventually you) wants to connect "#{from}" with your username "#{nick}".
       br
+      - if bound_to != ""
+        | Please note that the address is already linked to "#{bound_to}" and that it will be updated.
+        br
       | If that is OK then just reply to this mail.
     p
       | Have a nice day,

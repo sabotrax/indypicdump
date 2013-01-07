@@ -81,9 +81,13 @@ mail.each do |m|
       when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)/i
 	nick = $2.undash
 	if IPDUser.is_user?(nick)
+	  # check duplicate requests and ignore
+	  action = ["i am", nick, m.from[0]].join(",")
+	  result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [action])
+	  next if result.any?
 	  # check if requesting email address is already bound to this username
-	  result = IPDConfig::DB_HANDLE.execute("SELECT e.address, u.nick FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE u.nick = ? ORDER BY e.time_created ASC", [nick])
 	  already_are = false
+	  result = IPDConfig::DB_HANDLE.execute("SELECT e.address, u.nick FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE u.nick = ? ORDER BY e.time_created ASC", [nick])
 	  result.each do |row|
 	    if row[0] == m.from[0]
 	      Stalker.enqueue("email.send", :to => m.from[0], :i_am_already_are => true, :from => m.from[0], :nick => nick, :subject => "Notice")
@@ -92,14 +96,14 @@ mail.each do |m|
 	    end
 	  end
 	  next if already_are
-	  # check duplicate requests and ignore
-	  action = ["i am", nick, m.from[0]].join(",")
-	  result2 = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [action])
-	  next if result2.any?
+	  # check if requesting email address is already bound to any username and expand request mail
+	  result2 = IPDConfig::DB_HANDLE.execute("SELECT u.nick FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [m.from[0]])
+	  bound_to = ""
+	  bound_to = result2[0][0] if result2.any?
 	  # send request to owner of username
 	  request_code = SecureRandom.hex(16).downcase
 	  IPDConfig::DB_HANDLE.execute("INSERT INTO user_request (action, code, time_created) VALUES (?, ?, ?)", [action, request_code, Time.now.to_i]) 
-	  Stalker.enqueue("email.send", :to => result[0][0], :i_am_request_code => true, :code => request_code, :from => m.from[0], :nick => nick, :subject => "Notice")
+	  Stalker.enqueue("email.send", :to => result[0][0], :i_am_request_code => true, :code => request_code, :from => m.from[0], :nick => nick, :bound_to => bound_to, :subject => "Request to add email address")
 	else
 	  Stalker.enqueue("email.send", :to => m.from[0], :i_am_no_user => true, :from => m.from[0], :nick => nick, :subject => "Notice")
 	end
