@@ -47,10 +47,11 @@
 #puts DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time.to_i
 
 # 5
+#$:.unshift("/home/schommer/dev/indypicdump")
+#require "./ipdconfig"
 #require "./ipduser"
 
 #user = IPDUser.new
-#user.gen_nick
 #puts user.inspect
 
 # 6

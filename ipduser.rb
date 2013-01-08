@@ -90,7 +90,7 @@ class IPDUser
   ##############################
   def initialize
     @id = 0
-    @nick = ""
+    @nick = _gen_nick
     @email = []
     @time_created = Time.now.to_i
     @posts = 0
@@ -112,50 +112,14 @@ class IPDUser
   end
 
   ##############################
-  def gen_nick
-    adjectives = []
-    nouns = []
-    adjectives = File.readlines(IPDConfig::ADJECTIVES)
-    nouns = File.readlines(IPDConfig::NOUNS)
-    max_nicks = adjectives.length * nouns.length
-    # create unique nick from wordlists
-    i = 0
-    while true do
-      nick = adjectives.sample.chomp + " " + nouns.sample.chomp
-      found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
-      break if found.empty?
-      if i > max_nicks
-	IPDConfig::LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
-	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"
-      end
-      i += 1
-    end
-    # otherwise insert into db 
-    IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [nick, Time.now.to_i])
-    self.nick = nick
-  end
-
-  ##############################
   def save
     # TODO
     # add raise like in other save methods
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created) VALUES (?, ?)", [self.nick, self.time_created])
-      # sqlite3 inserts new users twice
-      # WORKAROUND
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [self.nick])
-      first = true
-      id = 0
-      result.each do |row|
-	if first
-	  first = false
-	  id = row[0]
-	  next
-	end
-	IPDConfig::DB_HANDLE.execute("DELETE FROM user WHERE id = ?", [row[0]])
-      end
-      self.id = id
+      result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+      self.id = result[0][0]
       self.email.each do |address|
 	IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
@@ -177,5 +141,30 @@ class IPDUser
       @has_messages = true if result.any?
     end
     return @has_messages
+  end
+
+  private
+
+  ##############################
+  def _gen_nick
+    adjectives = []
+    nouns = []
+    adjectives = File.readlines(IPDConfig::ADJECTIVES)
+    nouns = File.readlines(IPDConfig::NOUNS)
+    max_nicks = adjectives.length * nouns.length
+    # create unique nick from wordlists
+    nick = ""
+    i = 0
+    while true do
+      nick = adjectives.sample.chomp + " " + nouns.sample.chomp
+      found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
+      break if found.empty?
+      if i > max_nicks
+	IPDConfig::LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
+	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"
+      end
+      i += 1
+    end
+    return nick
   end
 end

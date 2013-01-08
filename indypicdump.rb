@@ -232,7 +232,6 @@ mail.each do |m|
       unless user
 	user = IPDUser.new
 	user.email = email
-	user.gen_nick
 	user.save
 	IPDConfig::LOG_HANDLE.info("IS NEW USER \"#{user.nick}\"")
       end
