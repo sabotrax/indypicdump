@@ -53,6 +53,17 @@
 
 #user = IPDUser.new
 #puts user.inspect
+#puts user.accept_external_messages?
+#user.accept_external_messages!
+#puts user.inspect
+#puts "--"
+#puts user.decline_external_messages?
+#user.decline_external_messages!
+#puts user.inspect
+#user.save
+#puts "saved"
+#puts user.inspect
+
 
 # 6
 #require "./ipdtest"
@@ -84,3 +95,23 @@
 #puts user.inspect
 #user = IPDUser.load_by_email("mail1@test.org")
 #puts user.inspect
+
+# 11
+#$:.unshift("/home/schommer/dev/indypicdump")
+#require "./ipdconfig"
+#require "./ipduser"
+
+#user = IPDUser.new
+#user.email = "test@somehost.com"
+#user.accept_external_messages!
+#puts user.inspect
+#user.save
+#puts user.inspect
+
+#user = IPDUser.load_by_nick("poised apple")
+#puts user.inspect
+#user.accept_external_messages!
+#user.remove_email("schommer@dingdong")
+#user.email = "schommer@dingdong"
+#puts user.inspect
+#user.save
