@@ -31,6 +31,7 @@ require 'ipdtest'
 require 'ipduser'
 require 'ipdmessage'
 require 'ipddump'
+require 'ipdrequest'
 
 IPDDump.load_dump_map
 
@@ -107,6 +108,30 @@ mail.each do |m|
 	else
 	  Stalker.enqueue("email.send", :to => m.from[0], :i_am_no_user => true, :from => m.from[0], :nick => nick, :subject => "Notice")
 	end
+	# TODO
+	# append next because of loose regexps?
+      # accept/decline messages
+      when /\b(accept|decline)\s+messages?\b/i
+	order = $1.downcase
+	if IPDUser.is_user?(m.from[0])
+	  # check duplicate requests and ignore
+	  request = IPDRequest.new
+	  request.action = ["#{order} messages", m.from[0]].join(",")
+	  # NOTICE
+	  # #exists? checks for existing accepts _and_ declines
+	  next if request.exists?
+	  # check if requesting user is already accepting/declining messages
+	  user = IPDUser.load_by_email(m.from[0])
+	  if (order == "accept" and user.accept_external_messages?) or (order == "decline" and user.decline_external_messages?)
+	    Stalker.enqueue("email.send", :to => m.from[0], :messages_already_are => true, :nick => user.nick, :order => order, :subject => "Notice")
+	    next
+	  end
+	  # send request
+	  request.save
+	  Stalker.enqueue("email.send", :to => m.from[0], :messages_request_code => true, :code => request.code, :nick => user.nick, :order => order, :subject => "Request to #{order} messages")
+	end
+	# TODO
+	# append next because of loose regexps?
       else
 	# i do not understand $1?
     end
@@ -162,6 +187,19 @@ mail.each do |m|
 		raise
 	      end
 	      IPDConfig::DB_HANDLE.commit
+	      next
+	    # accept/decline messages
+	    when /(accept|decline) messages/
+	      order = $1
+	      user = IPDUser.load_by_email(action[1])
+	      if order == "accept"
+		user.accept_external_messages!
+	      elsif order == "decline"
+		user.decline_external_messages!
+	      end
+	      user.save
+	      IPDRequest.remove_by_action(result[0][0])
+	      next
 	  end
 	else
 	  # send error mail?

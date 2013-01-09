@@ -115,3 +115,15 @@
 #user.email = "schommer@dingdong"
 #puts user.inspect
 #user.save
+
+# 12
+#$:.unshift("/home/schommer/dev/indypicdump")
+#require "./ipdconfig"
+#require "./ipdrequest"
+
+#request = IPDRequest.new
+#request.action = "backe kuche"
+#request.code = "milch zucker mehl"
+#puts request.inspect
+#request.save
+#puts request.inspect

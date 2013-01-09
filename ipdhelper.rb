@@ -18,6 +18,7 @@
 require 'sinatra'
 
 class Sinatra::Request
+  ##############################
   def dump
     # user dump
     if self.path =~ /^\/picture\/show\/user\/([a-zA-Z][a-zA-Z\-]*)$(?<!-)/
@@ -32,6 +33,7 @@ class Sinatra::Request
     return dump
   end
 
+  ##############################
   def has_dump?
     if self.dump != ""
       has_dump = true
@@ -43,10 +45,12 @@ class Sinatra::Request
 end
 
 class String
+  ##############################
   def dash
     self.to_s.downcase.tr(" ", "-")
   end
 
+  ##############################
   def undash
     self.to_s.downcase.tr("-", " ")
   end

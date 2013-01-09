@@ -18,8 +18,6 @@
 require 'ipdhelper'
 
 class IPDUser
-  attr_accessor :id, :nick, :time_created, :posts
-
   ##############################
   def self.load_by_email(email)
     found = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [email])
@@ -85,10 +83,16 @@ class IPDUser
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE id = ?", [i])
     elsif i =~ /^[a-zA-Z\- ]+(?<!-)$/
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [i.undash])
+    # find email addresses
+    # below is my short alternative to http://www.ex-parrot.com/~pdw/Mail-RFC822-Address.html
+    elsif i =~ /@/
+      result = IPDConfig::DB_HANDLE.execute("SELECT u.id FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [i])
     end
     is_user = true if result.any?
     return is_user
   end
+
+  attr_accessor :id, :nick, :time_created, :posts
 
   ##############################
   def initialize
@@ -117,8 +121,9 @@ class IPDUser
 
   ##############################
   def save
-    # TODO
-    # add raise like in other save methods
+    if self.email.empty?
+      raise
+    end
     begin
       IPDConfig::DB_HANDLE.transaction
       if self.id == 0

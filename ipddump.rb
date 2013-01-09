@@ -22,6 +22,7 @@ class IPDDump
     attr_accessor :dump
   end
 
+  ##############################
   def self.load_dump_map
     dump = self.dump
     return dump if dump.any?
@@ -34,17 +35,20 @@ class IPDDump
     self.dump = dump
   end
 
+  ##############################
   def self.reload_dump_map
     self.dump = {}
     self.load_dump_map
   end
 
+  ##############################
   def self.is_dump?(s)
     is_dump = false
     is_dump = true if id_dump(s) != 0
     return is_dump
   end
 
+  ##############################
   def self.id_dump(s)
     id_dump = 0
     dump_alias = s.downcase
@@ -56,14 +60,16 @@ class IPDDump
 
   attr_accessor :id, :alias, :time_created
 
+  ##############################
   def initialize
     @id = 0
     @alias = ""
     @time_created = Time.now.to_i
   end
 
+  ##############################
   def save
-    unless self.alias
+    if self.alias.empty?
       raise
     end
     begin

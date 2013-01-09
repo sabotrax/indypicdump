@@ -18,6 +18,7 @@
 class IPDMessage
   attr_accessor :id, :message_id, :message_text, :time_created, :id_user
 
+  ##############################
   def initialize
     @id = 0
     @message_id = 0
@@ -26,8 +27,9 @@ class IPDMessage
     @id_user = 0
   end
 
+  ##############################
   def save
-    unless self.message_id and self.id_user
+    if self.message_id == 0 or self.id_user == 0
       raise
     end
     IPDConfig::DB_HANDLE.transaction

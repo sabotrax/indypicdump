@@ -26,19 +26,24 @@ include Stalker
 ##############################
 job 'email.send' do |args|
   class Env
-    attr_accessor :from, :nick, :bound_to, :code
+    attr_accessor :from, :nick, :bound_to, :code, :order
   end
   env = Env.new
   env.from = args["from"]
   env.nick = args["nick"]
   env.bound_to = args["bound_to"]
   env.code = args["code"]
+  env.order = args["order"]
   if args["i_am_no_user"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)
   elsif args["i_am_already_are"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
   elsif args["i_am_request_code"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["messages_already_are"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["messages_request_code"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
   else
     # TODO
     # raise some

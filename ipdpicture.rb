@@ -202,6 +202,7 @@ class IPDPicture
 
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path
 
+  ##############################
   def initialize
     @id = 0
     @filename = ""
