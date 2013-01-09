@@ -155,7 +155,7 @@ get '/picture/show/user/:nick' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -187,6 +187,7 @@ get '/picture/show/user/:nick' do
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]
+    @user.accept_external_messages = rnd_picture[0][7]
     @pic.path = rnd_picture[0][5]
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
@@ -195,6 +196,29 @@ get '/picture/show/user/:nick' do
     # better: Pool not found. You might create it? w link
     raise Sinatra::NotFound
   end
+end
+
+##############################
+get '/picture/contact/:nick/about/:filename' do
+  @user = IPDUser::load_by_nick(params[:nick])
+  unless @user
+    @msg = "No such user."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless @user.accept_external_messages?
+    @msg = "User no want contact with other species."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless IPDPicture.exists?(params[:filename])
+    @msg = "Picture is not existing."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless @user.owns_picture?(params[:filename])
+    @msg = "User is not owning picture."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @picture = IPDPicture::load_by_filename(params[:filename])
+  slim :contact, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
@@ -292,7 +316,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -324,6 +348,7 @@ get '/*' do
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]
+    @user.accept_external_messages = rnd_picture[0][7]
     @pic.path = rnd_picture[0][5]
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false

@@ -1,0 +1,11 @@
+| Hello,
+br
+p
+  | you might leave your email address so #{@user.nick} can answer you.
+  br
+form action="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}" method="post"
+  p
+    == recaptcha_tag(:challenge)
+  input type="text" name="dump" class="input"
+  | &nbsp;
+  input type="submit" value="Send" class="button"

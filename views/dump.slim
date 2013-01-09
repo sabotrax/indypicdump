@@ -51,5 +51,10 @@ html lang="en"
         - mt = "!"
       | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.nick.dash}" id="landing">#{@user.nick}#{mt}</a>
       br
+      - if @user.accept_external_messages?
+        | take action: <a href="/picture/contact/#{@user.nick.dash}/about/#{@pic.filename}" id="landing">contact user</a>
+      - else
+        | take action: not much yet
+      br
       <img src="/pics/#{@pic.path}/#{@pic.filename}" id="image" name="image"><br />
       | <a href="/" id="landing">&hearts; indypicdump</a> | <a href="/about.html" id="landing">about</a>

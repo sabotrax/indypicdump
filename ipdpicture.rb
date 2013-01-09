@@ -200,6 +200,44 @@ class IPDPicture
     return picture
   end
 
+  ##############################
+  # TODO
+  # better DRY here and above
+  def self.load_by_filename(f)
+    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM picture WHERE filename = ?", [f])
+    if result.any?
+      picture = self.new
+      picture.id = result[0][0]
+      picture.filename = result[0][1]
+      picture.time_taken = result[0][2]
+      picture.time_sent = result[0][3]
+      picture.id_user = result[0][4]
+      picture.original_hash = result[0][5]
+      picture.id_dump = result[0][6]
+      picture.path = result[0][7]
+    else
+      picture = nil
+    end
+    return picture
+  end
+
+  ##############################
+  def self.exists?(p)
+    result = []
+    picture_exists = false
+    if p =~ /^\d+\.(\d+\.)?[A-Za-z]{3,4}$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [p])
+    end
+    if result.any?
+      if File.exists?(IPDConfig::PIC_DIR + "/" + result[0][1] + "/" + p)
+	picture_exists = result[0][0]
+      else
+	IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{result[0][1]}/#{p} in #{caller[0]}")
+      end
+    end
+    return picture_exists
+  end
+
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path
 
   ##############################

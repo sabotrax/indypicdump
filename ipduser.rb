@@ -229,6 +229,18 @@ class IPDUser
     @email.delete(email)
   end
 
+  ##############################
+  def owns_picture?(p)
+    result = []
+    owns_picture = false
+    id_picture = IPDPicture.exists?(p)
+    if id_picture
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id = ? AND id_user = ?", [id_picture, self.id])
+    end
+    owns_picture = true if result.any?
+    return owns_picture
+  end
+
   private
 
   ##############################
