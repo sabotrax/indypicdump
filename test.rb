@@ -127,3 +127,8 @@
 #puts request.inspect
 #request.save
 #puts request.inspect
+
+# 13
+#message = "test some@mailbear.com. from to."
+#regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
+#puts message.sub(regex, '<a href=\"mailto:\1\">\1</a>')

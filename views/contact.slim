@@ -1,11 +1,11 @@
 | Hello,
 br
 p
+  img src="/pics/#{@picture.path}/#{@picture.filename}" id="image" name="image" width="200" style="float:right; margin:0 0 5px 5px;"
   | you might leave your email address so #{@user.nick} can answer you.
-  br
 form action="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}" method="post"
   p
     == recaptcha_tag(:challenge)
-  input type="text" name="dump" class="input"
-  | &nbsp;
-  input type="submit" value="Send" class="button"
+  textarea name="message"
+  p
+    input type="submit" value="Send" class="button"

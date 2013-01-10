@@ -25,6 +25,7 @@ require 'sqlite3'
 require 'slim'
 require 'rack/recaptcha'
 require 'mail'
+require 'stalker'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
@@ -219,6 +220,38 @@ get '/picture/contact/:nick/about/:filename' do
   end
   @picture = IPDPicture::load_by_filename(params[:filename])
   slim :contact, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+post '/picture/contact/:nick/about/:filename' do
+  @user = IPDUser::load_by_nick(params[:nick])
+  unless @user
+    @msg = "No such user."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless @user.accept_external_messages?
+    @msg = "User no want contact with other species."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless IPDPicture.exists?(params[:filename])
+    @msg = "Picture is not existing."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  unless @user.owns_picture?(params[:filename])
+    @msg = "User is not owning picture."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @picture = IPDPicture::load_by_filename(params[:filename])
+  redirect "/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}" if params[:message].nil? or params[:message].empty? or params[:message] =~ /\A\s+\z/ or !recaptcha_valid?
+  message = params[:message].gsub(/\r/, "").strip
+  regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
+  message.gsub!(regex, '<a href="mailto:\1?subject=Your fan mail">\1</a>')
+  Stalker.enqueue("email.send", :to => @user.email.first, :messages_message => true, :message => message, :nick => @user.nick, :subject => "A message from a fan or not")
+  @msg = "OK."
+  # TODO
+  # remember source (md or ud) for proper redirection
+  #response.headers['Refresh'] = '5;url=http://some.com'
+  slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
