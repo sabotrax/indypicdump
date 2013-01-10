@@ -26,7 +26,7 @@ include Stalker
 ##############################
 job 'email.send' do |args|
   class Env
-    attr_accessor :from, :nick, :bound_to, :code, :order, :message
+    attr_accessor :from, :nick, :bound_to, :code, :order, :message, :path, :filename
   end
   env = Env.new
   env.from = args["from"]
@@ -35,6 +35,8 @@ job 'email.send' do |args|
   env.code = args["code"]
   env.order = args["order"]
   env.message = args["message"]
+  env.path = args["path"]
+  env.filename = args["filename"]
   # i am
   if args["i_am_no_user"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)

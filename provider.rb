@@ -246,7 +246,7 @@ post '/picture/contact/:nick/about/:filename' do
   message = params[:message].gsub(/\r/, "").strip
   regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
   message.gsub!(regex, '<a href="mailto:\1?subject=Your fan mail">\1</a>')
-  Stalker.enqueue("email.send", :to => @user.email.first, :messages_message => true, :message => message, :nick => @user.nick, :subject => "A message from a fan or not")
+  Stalker.enqueue("email.send", :to => @user.email.first, :messages_message => true, :message => message, :nick => @user.nick, :path => @picture.path, :filename => @picture.filename, :subject => "A message from a fan or not")
   @msg = "OK."
   # TODO
   # remember source (md or ud) for proper redirection
