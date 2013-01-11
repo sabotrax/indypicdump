@@ -42,19 +42,17 @@ html lang="en"
       }(document));
   body
     #Content
-      - if @pic.time_taken == 0
+      - if @picture.time_taken == 0
         - tt = "unknown"
       - else
-        - tt = Time.at(@pic.time_taken).strftime("%e.%m.%Y %H:%M")
-      - ts = Time.at(@pic.time_sent).strftime("%e.%m.%Y %H:%M")
+        - tt = Time.at(@picture.time_taken).strftime("%e.%m.%Y %H:%M")
+      - ts = Time.at(@picture.time_sent).strftime("%e.%m.%Y %H:%M")
       - if @user.has_messages?
         - mt = "!"
       | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.nick.dash}" id="landing">#{@user.nick}#{mt}</a>
       br
+      <img src="/pics/#{@picture.path}/#{@picture.filename}" id="image" name="image"><br />
       - if @user.accept_external_messages?
-        | take action: <a href="/picture/contact/#{@user.nick.dash}/about/#{@pic.filename}" id="landing">contact user</a>
-      - else
-        | take action: not much yet
-      br
-      <img src="/pics/#{@pic.path}/#{@pic.filename}" id="image" name="image"><br />
-      | <a href="/" id="landing">&hearts; indypicdump</a> | <a href="/about.html" id="landing">about</a>
+        | <a href="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}/in/#{@picture.dump}" id="landing">contact user</a>
+        br
+      | <a href="/" id="landing">indypicdump</a> | <a href="/about.html" id="landing">about</a>

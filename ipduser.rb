@@ -76,9 +76,9 @@ class IPDUser
   end
 
   ##############################
-  def self.is_user?(i)
+  def self.exists?(i)
     result = []
-    is_user = false
+    user_exists = false
     if i =~ /^[1-9]\d*$/
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE id = ?", [i])
     elsif i =~ /^[a-zA-Z\- ]+(?<!-)$/
@@ -88,8 +88,8 @@ class IPDUser
     elsif i =~ /@/
       result = IPDConfig::DB_HANDLE.execute("SELECT u.id FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [i])
     end
-    is_user = true if result.any?
-    return is_user
+    user_exists = true if result.any?
+    return user_exists
   end
 
   attr_accessor :id, :nick, :time_created, :posts

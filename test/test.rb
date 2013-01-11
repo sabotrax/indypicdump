@@ -17,6 +17,8 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
+$:.unshift("/home/schommer/dev/indypicdump")
+
 # 1
 #puts Time.now.to_f
 
@@ -117,7 +119,6 @@
 #user.save
 
 # 12
-#$:.unshift("/home/schommer/dev/indypicdump")
 #require "./ipdconfig"
 #require "./ipdrequest"
 
@@ -132,3 +133,10 @@
 #message = "test some@mailbear.com. from to."
 #regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
 #puts message.sub(regex, '<a href=\"mailto:\1\">\1</a>')
+
+# 14
+require 'ipdconfig'
+require 'ipdpicture'
+
+puts IPDPicture.load_by_id(35).inspect
+puts IPDPicture.load_by_filename("1353866445.6022875.jpg").inspect

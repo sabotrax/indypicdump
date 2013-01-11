@@ -81,7 +81,7 @@ mail.each do |m|
       # i am
       when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)/i
 	nick = $2.undash
-	if IPDUser.is_user?(nick)
+	if IPDUser.exists?(nick)
 	  # check duplicate requests and ignore
 	  action = ["i am", nick, m.from[0]].join(",")
 	  result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [action])
@@ -113,7 +113,7 @@ mail.each do |m|
       # accept/decline messages
       when /\b(accept|decline)\s+messages?\b/i
 	order = $1.downcase
-	if IPDUser.is_user?(m.from[0])
+	if IPDUser.exists?(m.from[0])
 	  # check duplicate requests and ignore
 	  request = IPDRequest.new
 	  request.action = ["#{order} messages", m.from[0]].join(",")
@@ -232,7 +232,7 @@ mail.each do |m|
 	next
       end
       # check for existing dump
-      unless IPDDump.is_dump?(m.to[0].to_s)
+      unless IPDDump.exists?(m.to[0].to_s)
 	# notify existing users
 	if user
 	  msg = IPDMessage.new
@@ -282,7 +282,7 @@ mail.each do |m|
       pic.time_sent = m.date.to_time.to_i
       pic.id_user = user.id
       pic.original_hash = pic_hash
-      pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.is_dump?(m.to[0].to_s)
+      pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.exists?(m.to[0].to_s)
       pic.path = path
       picstack.push(pic)
       begin

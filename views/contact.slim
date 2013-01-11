@@ -3,9 +3,12 @@ br
 p
   img src="/pics/#{@picture.path}/#{@picture.filename}" id="image" name="image" width="200" style="float:right; margin:0 0 5px 5px;"
   | you might leave your email address so #{@user.nick} can answer you.
-form action="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}" method="post"
+- unless @msg.empty?
+  p#message #{@msg}
+form action="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}/in/#{@picture.dump}" method="post"
   p
     == recaptcha_tag(:challenge)
   textarea name="message"
+    == @message
   p
     input type="submit" value="Send" class="button"

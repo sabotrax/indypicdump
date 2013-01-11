@@ -114,9 +114,6 @@ helpers do
 end
 
 ##############################
-# this is ugly
-# TODO
-# - return json, not text
 get '/picture/delete/:filename' do
   protected!
   # check params
@@ -150,7 +147,7 @@ end
 ##############################
 get '/picture/show/user/:nick' do
   # get here from /pic/show/user/:nick/random (and others)
-  if request.has_dump? and IPDUser.is_user?(params[:nick])
+  if request.has_dump? and IPDUser.exists?(params[:nick])
     id_dump = request.dump
     begin
       i = 0
@@ -180,16 +177,17 @@ get '/picture/show/user/:nick' do
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
-    @pic = IPDPicture.new
-    @pic.id = rnd_picture[0][0]
-    @pic.filename = rnd_picture[0][1]
-    @pic.time_taken = rnd_picture[0][2]
-    @pic.time_sent = rnd_picture[0][3]
+    @picture = IPDPicture.new
+    @picture.id = rnd_picture[0][0]
+    @picture.filename = rnd_picture[0][1]
+    @picture.time_taken = rnd_picture[0][2]
+    @picture.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]
     @user.accept_external_messages = rnd_picture[0][7]
-    @pic.path = rnd_picture[0][5]
+    @picture.path = rnd_picture[0][5]
+    @picture.dump = "ud"
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
@@ -200,8 +198,8 @@ get '/picture/show/user/:nick' do
 end
 
 ##############################
-get '/picture/contact/:nick/about/:filename' do
-  @user = IPDUser::load_by_nick(params[:nick])
+get '/picture/contact/:nick/about/:filename/in/:dump' do
+  @user = IPDUser.load_by_nick(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -218,13 +216,27 @@ get '/picture/contact/:nick/about/:filename' do
     @msg = "User is not owning picture."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  @picture = IPDPicture::load_by_filename(params[:filename])
+  @picture = IPDPicture.load_by_filename(params[:filename])
+  unless params[:dump] == "ud"
+    unless IPDDump.exists?(params[:dump])
+      @msg = "Dump does not exists."
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+    end
+    unless @picture.dump == params[:dump].dash
+      @msg = "Picture is not member of dump."
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+    end
+  else
+    @picture.dump = "ud"
+  end
+  @msg = ""
+  @message = ""
   slim :contact, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
-post '/picture/contact/:nick/about/:filename' do
-  @user = IPDUser::load_by_nick(params[:nick])
+post '/picture/contact/:nick/about/:filename/in/:dump' do
+  @user = IPDUser.load_by_nick(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -241,22 +253,39 @@ post '/picture/contact/:nick/about/:filename' do
     @msg = "User is not owning picture."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  @picture = IPDPicture::load_by_filename(params[:filename])
-  redirect "/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}" if params[:message].nil? or params[:message].empty? or params[:message] =~ /\A\s+\z/ or !recaptcha_valid?
+  @picture = IPDPicture.load_by_filename(params[:filename])
+  unless params[:dump] == "ud"
+    unless IPDDump.exists?(params[:dump])
+      @msg = "Dump does not exists."
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+    end
+    unless @picture.dump == params[:dump].dash
+      @msg = "Picture is not member of dump."
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+    end
+  end
+  if params[:message].nil? or params[:message].empty? or params[:message] =~ /\A\s+\z/ or !recaptcha_valid?
+    @msg = "Try again."
+    @message = params[:message]
+    halt slim :contact, :pretty => IPDConfig::RENDER_PRETTY
+  end
   message = params[:message].gsub(/\r/, "").strip
   regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
   message.gsub!(regex, '<a href="mailto:\1?subject=Your fan mail">\1</a>')
   Stalker.enqueue("email.send", :to => @user.email.first, :messages_message => true, :message => message, :nick => @user.nick, :path => @picture.path, :filename => @picture.filename, :subject => "A message from a fan or not")
-  @msg = "OK."
-  # TODO
-  # remember source (md or ud) for proper redirection
-  #response.headers['Refresh'] = '5;url=http://some.com'
+  @msg = "Message sent. You will be redirected."
+  if params[:dump] == "ud"
+    url = "/picture/show/user/#{@user.nick.dash}"
+  else
+    url = "/#{params[:dump]}"
+  end
+  response.headers['Refresh'] = "5;url=#{url}"
   slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
 get '/user/show/:nick' do
-  @user = IPDUser::load_by_nick(params[:nick])
+  @user = IPDUser.load_by_nick(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -349,7 +378,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -373,16 +402,17 @@ get '/*' do
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
-    @pic = IPDPicture.new
-    @pic.id = rnd_picture[0][0]
-    @pic.filename = rnd_picture[0][1]
-    @pic.time_taken = rnd_picture[0][2]
-    @pic.time_sent = rnd_picture[0][3]
+    @picture = IPDPicture.new
+    @picture.id = rnd_picture[0][0]
+    @picture.filename = rnd_picture[0][1]
+    @picture.time_taken = rnd_picture[0][2]
+    @picture.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
     @user.nick = rnd_picture[0][6]
     @user.accept_external_messages = rnd_picture[0][7]
-    @pic.path = rnd_picture[0][5]
+    @picture.path = rnd_picture[0][5]
+    @picture.dump = rnd_picture[0][8]
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else

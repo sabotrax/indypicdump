@@ -42,10 +42,10 @@ class IPDDump
   end
 
   ##############################
-  def self.is_dump?(s)
-    is_dump = false
-    is_dump = true if id_dump(s) != 0
-    return is_dump
+  def self.exists?(s)
+    dump_exists = false
+    dump_exists = true if id_dump(s) != 0
+    return dump_exists
   end
 
   ##############################
