@@ -79,13 +79,11 @@ class IPDUser
   def self.exists?(i)
     result = []
     user_exists = false
-    if i =~ /^[1-9]\d*$/
+    if i.to_s =~ /^[1-9]\d*$/
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE id = ?", [i])
-    elsif i =~ /^[a-zA-Z\- ]+(?<!-)$/
+    elsif i =~ /^[a-z\- ]+(?<!-)$/i
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [i.undash])
-    # find email addresses
-    # below is my short alternative to http://www.ex-parrot.com/~pdw/Mail-RFC822-Address.html
-    elsif i =~ /@/
+    elsif i =~ /#{IPDConfig::REGEX_EMAIL}/i
       result = IPDConfig::DB_HANDLE.execute("SELECT u.id FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [i])
     end
     user_exists = true if result.any?

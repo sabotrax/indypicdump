@@ -227,7 +227,7 @@ class IPDPicture
   def self.exists?(p)
     result = []
     picture_exists = false
-    if p =~ /^\d+\.(\d+\.)?[A-Za-z]{3,4}$/
+    if p =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
       result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [p])
     end
     if result.any?

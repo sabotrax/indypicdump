@@ -26,7 +26,7 @@ include Stalker
 ##############################
 job 'email.send' do |args|
   class Env
-    attr_accessor :from, :nick, :bound_to, :code, :order, :message, :path, :filename
+    attr_accessor :from, :nick, :bound_to, :code, :order, :message, :path, :filename, :dump, :address
   end
   env = Env.new
   env.from = args["from"]
@@ -37,6 +37,8 @@ job 'email.send' do |args|
   env.message = args["message"]
   env.path = args["path"]
   env.filename = args["filename"]
+  env.dump = args["dump"]
+  env.address = args["address"]
   # i am
   if args["i_am_no_user"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)
@@ -51,6 +53,18 @@ job 'email.send' do |args|
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
   elsif args["messages_message"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_message.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  # open dump
+  elsif args["open_dump_no_dump"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_no_dump.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["open_dump_no_member"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_no_member.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["open_dump_already_are"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["open_dump_request_code"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  # bad kitty
+  elsif args["bad_kitty"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_bad_kitty.slim", :pretty => IPDConfig::RENDER_PRETTY)
   else
     # TODO
     # raise some

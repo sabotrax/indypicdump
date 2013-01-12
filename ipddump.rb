@@ -58,6 +58,24 @@ class IPDDump
     return id_dump
   end
 
+  ##############################
+  def self.load(d)
+    result = []
+    dump = nil
+    if d.to_s =~ /^[1-9]\d*$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE id = ?", [d])
+    elsif d =~ /^[a-z\- ]+(?<!-)$/i
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [d.dash])
+    end
+    if result.any?
+      dump = self.new
+      dump.id = result[0][0]
+      dump.alias = result[0][1]
+      dump.time_created = result[0][2]
+    end
+    return dump
+  end
+
   attr_accessor :id, :alias, :time_created
 
   ##############################
@@ -84,5 +102,18 @@ class IPDDump
       raise
     end
     IPDConfig::DB_HANDLE.commit
+  end
+
+  ##############################
+  def has_user?(u)
+    result = []
+    has_user = false
+    if u.to_s =~ /^[1-9]\d*$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT id_dump FROM mapping_dump_user WHERE id_dump = ? AND id_user = ?", [self.id, u])
+    elsif u =~ /#{IPDConfig::REGEX_EMAIL}/i
+      result = IPDConfig::DB_HANDLE.execute("SELECT d.id FROM dump d JOIN mapping_dump_user m1 ON d.id = m1.id_dump JOIN mapping_user_email_address m2 ON m1.id_user = m2.id_user JOIN email_address e ON m2.id_address = e.id WHERE d.id = ? AND e.address = ?", [self.id, u])
+    end
+    has_user = true if result.any?
+    return has_user
   end
 end

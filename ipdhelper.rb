@@ -21,11 +21,11 @@ class Sinatra::Request
   ##############################
   def dump
     # user dump
-    if self.path =~ /^\/picture\/show\/user\/([a-zA-Z][a-zA-Z\-]*)$(?<!-)/
+    if self.path =~ /^\/picture\/show\/user\/([a-z][a-z\-]*)$(?<!-)/i
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [$1.undash])
       dump = "ud" + result[0][0].to_s if result.any?
     # multi dump
-    elsif self.path =~ /^\/([a-zA-Z0-9][a-zA-Z0-9\-]*)(?<!-)$/
+    elsif self.path =~ /^\/([a-z0-9][a-z0-9\-]*)(?<!-)$/i
       dump = $1
     else
       dump = ""

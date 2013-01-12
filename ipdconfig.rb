@@ -79,4 +79,7 @@ module IPDConfig
   # Dump
   # list of names dumps may not have
   RESERVED = PATH + '/data/reserved.txt'
+
+  # Misc
+  REGEX_EMAIL = %q{[a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b}
 end

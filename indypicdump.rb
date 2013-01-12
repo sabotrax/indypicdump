@@ -62,8 +62,8 @@ end
 unless test
   # TODO
   # is "asc" newest or oldest first? should be oldest
-  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -79,7 +79,7 @@ mail.each do |m|
   if m.to[0] == IPDConfig::EMAIL_USER_MGMT
     case m.subject
       # i am
-      when /(i am)\s+([a-zA-Z]+[\- ][a-zA-Z]+)/i
+      when /(i am)\s+([a-z]+[\- ][a-z]+)/i
 	nick = $2.undash
 	if IPDUser.exists?(nick)
 	  # check duplicate requests and ignore
@@ -129,6 +129,41 @@ mail.each do |m|
 	  # send request
 	  request.save
 	  Stalker.enqueue("email.send", :to => m.from[0], :messages_request_code => true, :code => request.code, :nick => user.nick, :order => order, :subject => "Request to #{order} messages")
+	end
+	# TODO
+	# append next because of loose regexps?
+      # open dump
+      when /\bopen\s+([a-z0-9][a-z0-9\- ]*)(?<![\- ])\s+for\s+(#{IPDConfig::REGEX_EMAIL})/i
+	address = $2.downcase
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load_by_email(m.from[0])
+	  # check if dump exists
+	  dump = IPDDump.load($1.dash)
+	  unless dump
+	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_no_dump => true, :nick => user.nick, :dump => $1.undash, :address => address, :subject => "Notice")
+	    next
+	  end
+	  # check duplicate requests and ignore
+	  request = IPDRequest.new
+	  request.action = ["open dump", dump.alias, address].join(",")
+	  next if request.exists?
+	  # check if user is member of dump
+	  unless dump.has_user?(user.id)
+	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_no_member => true, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
+	    next
+	  end
+	  # check if new address is already member of dump
+	  if user.has_email?(address)
+	    Stalker.enqueue("email.send", :to => m.from[0], :bad_kitty => true, :nick => user.nick, :subject => "Notice")
+	    next
+	  end
+	  if dump.has_user?(address)
+	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_already_are => true, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
+	    next
+	  end
+	  # send request
+	  request.save
+	  Stalker.enqueue("email.send", :to => m.from[0], :open_dump_request_code => true, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
 	end
 	# TODO
 	# append next because of loose regexps?

@@ -38,6 +38,7 @@ class IPDRequest
     request_exists = false
     action = []
     action.push(self.action)
+    # accept/decline messages
     if self.action =~ /^accept\s+/i
       other = self.action.sub(/accept/, "decline")
       action.push(other)

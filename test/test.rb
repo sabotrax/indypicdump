@@ -135,8 +135,21 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #puts message.sub(regex, '<a href=\"mailto:\1\">\1</a>')
 
 # 14
-require 'ipdconfig'
-require 'ipdpicture'
+#require 'ipdconfig'
+#require 'ipdpicture'
 
-puts IPDPicture.load_by_id(35).inspect
-puts IPDPicture.load_by_filename("1353866445.6022875.jpg").inspect
+#puts IPDPicture.load_by_id(35).inspect
+#puts IPDPicture.load_by_filename("1353866445.6022875.jpg").inspect
+
+# 15
+#require 'ipdconfig'
+#require 'ipddump'
+#require 'ipdpicture'
+#require 'ipduser'
+
+#puts IPDPicture.load_by_id(35).inspect
+#puts IPDUser.exists?("1")
+
+#dump = IPDDump.load(9)
+#puts dump.inspect
+#puts dump.has_user?(1).inspect
