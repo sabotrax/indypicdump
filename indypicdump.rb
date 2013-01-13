@@ -244,6 +244,7 @@ mail.each do |m|
 		dump.add_user(user.id)
 		Stalker.enqueue("email.send", :to => action[2], :open_dump_notice_invited => true, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
 		IPDRequest.remove_by_action(result[0][0])
+		IPDConfig::LOG_HANDLE.info("ADD USER #{user.nick} TO DUMP #{dump.alias}")
 	      # invite new users
 	      else
 		IPDRequest.remove_by_action(result[0][0])
@@ -264,6 +265,7 @@ mail.each do |m|
 	      dump.add_user(user.id)
 	      Stalker.enqueue("email.send", :to => action[2], :new_user_notice_invited => true, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
+	      IPDConfig::LOG_HANDLE.info("NEW USER #{action[2]} IS #{user.nick} DUMP #{dump.alias}")
 	      next
 	  end
 	else
@@ -283,61 +285,60 @@ mail.each do |m|
       # "downcase" only works in the ASCII region
       email = m.from[0].downcase
       user = IPDUser.load_by_email(email)
+      next unless user
       # drop pictures smaller than IPDConfig::PIC_MIN_SIZE
       img = Magick::Image::from_blob(attachment.body.decoded)[0]
       if img.columns >= img.rows and img.columns < IPDConfig::PIC_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PIC_MIN_SIZE
-	if user
-	  msg = IPDMessage.new
-	  msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
-	  msg.time_created = m.date.to_time.to_i
-	  msg.id_user = user.id
-	  msg.save
-	end
-	IPDConfig::LOG_HANDLE.info("PIC TOO SMALL FROM #{ user ? "" : "UNKOWN USER "}#{m.from[0].downcase} SIZE #{img.columns}x#{img.rows}")
+	msg = IPDMessage.new
+	msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
+	msg.time_created = m.date.to_time.to_i
+	msg.id_user = user.id
+	msg.save
+	IPDConfig::LOG_HANDLE.info("PICTURE TOO SMALL FROM #{user.nick} SIZE #{img.columns}x#{img.rows}")
 	next
       end
       # check for existing dump
       unless IPDDump.exists?(m.to[0].to_s)
-	# notify existing users
-	if user
-	  msg = IPDMessage.new
-	  msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
-	  msg.time_created = m.date.to_time.to_i
-	  msg.id_user = user.id
-	  msg.save
-	end
+	msg = IPDMessage.new
+	msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
+	msg.time_created = m.date.to_time.to_i
+	msg.id_user = user.id
+	msg.save
 	unknown_dump = m.to[0].to_s.downcase
 	unknown_dump.sub!(/@.+$/, "")
-	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{user ? "" : "UNKNOWN USER "}#{m.from[0].downcase}")
+	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{user.nick}")
+	next
+      end
+      # check if user is member of dump
+      dump = IPDDump.load(IPDDump.id_dump(m.to[0].to_s))
+      unless dump.has_user?(user.id)
+	msg = IPDMessage.new
+	msg.message_id = IPDConfig::MSG_NO_DUMP_MEMBER
+	msg.time_created = m.date.to_time.to_i
+	msg.id_user = user.id
+	msg.save
+	IPDConfig::LOG_HANDLE.info("FORBIDDEN DUMP #{dump.alias} FROM #{user.nick}")
 	next
       end
       # check for duplicate pictures
+      # TODO
+      # better use dump.has_picture?
       pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
-      id_dump = IPDDump.id_dump(m.to[0].to_s)
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{id_dump}\" WHERE original_hash = ?", [pic_hash])
+      #id_dump = IPDDump.id_dump(m.to[0].to_s)
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{dump.id}\" WHERE original_hash = ?", [pic_hash])
       if result.any?
-	# notify existing users
-	if user
-	  msg = IPDMessage.new
-	  msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
-	  msg.time_created = m.date.to_time.to_i
-	  msg.id_user = user.id
-	  msg.save
-	end
-	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user ? "" : "UNKOWN USER "}#{m.from[0].downcase} ORIGINAL ID #{result[0][0]} DUMP #{id_dump}")
+	msg = IPDMessage.new
+	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
+	msg.time_created = m.date.to_time.to_i
+	msg.id_user = user.id
+	msg.save
+	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user.nick} ORIGINAL ID #{result[0][0]} DUMP #{dump.alias}")
 	# CAUTION
 	# we allow duplicates in test mode
 	next unless test
       end
 
       IPDConfig::LOG_HANDLE.info("SENDER #{email}")
-      # create new user
-      unless user
-	user = IPDUser.new
-	user.email = email
-	user.save
-	IPDConfig::LOG_HANDLE.info("IS NEW USER \"#{user.nick}\"")
-      end
       # generate unique filename
       now = Time.now
       filename = now.to_f.to_s + File.extname(attachment.filename)

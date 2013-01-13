@@ -62,7 +62,7 @@ module IPDConfig
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'
   NOUNS = PATH + '/data/nouns.txt'
-  REQUEST_ACCEPT_SPAN = 259200
+  REQUEST_ACCEPT_SPAN = 172800
   EMAIL_USER_MGMT = 'me@indypicdump.com'
 
   # Message
@@ -71,10 +71,12 @@ module IPDConfig
     1 => "You sent a duplicate picture",
     2 => "You posted to an unknown dump",
     3 => "The picture you sent was too small",
+    4 => "You are no member of this dump"
   }
   MSG_DUPLICATE_PIC = 1
   MSG_UNKNOWN_DUMP = 2
   MSG_PIC_TOO_SMALL = 3
+  MSG_NO_DUMP_MEMBER = 4
 
   # Dump
   # list of names dumps may not have
