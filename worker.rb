@@ -21,6 +21,7 @@ require 'stalker'
 require 'mail'
 require 'slim'
 require 'ipdconfig'
+require 'ipdhelper'
 include Stalker
 
 ##############################
@@ -62,6 +63,13 @@ job 'email.send' do |args|
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
   elsif args["open_dump_request_code"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["open_dump_notice_invited"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_notice_invited.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  # new user
+  elsif args["new_user_request_code"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_user_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
+  elsif args["new_user_notice_invited"]
+    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_user_notice_invited.slim", :pretty => IPDConfig::RENDER_PRETTY)
   # bad kitty
   elsif args["bad_kitty"]
     t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_bad_kitty.slim", :pretty => IPDConfig::RENDER_PRETTY)

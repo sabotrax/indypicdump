@@ -235,6 +235,36 @@ mail.each do |m|
 	      user.save
 	      IPDRequest.remove_by_action(result[0][0])
 	      next
+	    # open dump
+	    when /open dump/
+	      dump = IPDDump.load(action[1])
+	      user = IPDUser.load_by_email(action[2])
+	      # add known users to dump
+	      if user
+		dump.add_user(user.id)
+		Stalker.enqueue("email.send", :to => action[2], :open_dump_notice_invited => true, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
+		IPDRequest.remove_by_action(result[0][0])
+	      # invite new users
+	      else
+		IPDRequest.remove_by_action(result[0][0])
+		request = IPDRequest.new
+		action.shift
+		request.action = ["new user", action].join(",")
+		request.save
+		action = request.action.split(",")
+		Stalker.enqueue("email.send", :to => action[2], :new_user_request_code => true, :code => request.code, :subject => "indypicdump - collect and share")
+	      end
+	      next
+	    # new user
+	    when /new user/
+	      user = IPDUser.new
+	      user.email = action[2]
+	      user.save
+	      dump = IPDDump.load(action[1])
+	      dump.add_user(user.id)
+	      Stalker.enqueue("email.send", :to => action[2], :new_user_notice_invited => true, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
+	      IPDRequest.remove_by_action(result[0][0])
+	      next
 	  end
 	else
 	  # send error mail?

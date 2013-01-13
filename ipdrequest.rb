@@ -45,6 +45,10 @@ class IPDRequest
     elsif self.action =~ /^decline\s+/i
       other = self.action.sub(/decline/, "accept")
       action.push(other)
+    # open dump/new user
+    elsif self.action =~ /^open dump/i
+      other = self.action.sub(/open dump/, "new user")
+      action.push(other)
     end
     action.each do |a|
       result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [a])
