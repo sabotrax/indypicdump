@@ -240,6 +240,12 @@ class IPDPicture
     return picture_exists
   end
 
+  ##############################
+  def self.count_pictures
+    result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
+    return result[0][0]
+  end
+
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump
 
   ##############################

@@ -366,6 +366,12 @@ get '/usage.html' do
 end
 
 ##############################
+get '/about.html' do
+  @counter = IPDPicture.count_pictures
+  slim :about, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
 not_found do
   @msg = "Not found."
   slim :notice, :pretty => IPDConfig::RENDER_PRETTY
