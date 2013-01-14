@@ -64,6 +64,7 @@ module IPDConfig
   NOUNS = PATH + '/data/nouns.txt'
   REQUEST_ACCEPT_SPAN = 172800
   EMAIL_USER_MGMT = 'me@indypicdump.com'
+  TEMPLATE_DIR = PATH + '/templates'
 
   # Message
   MSG_SHOW_SPAN = 604800

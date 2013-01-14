@@ -62,8 +62,8 @@ end
 unless test
   # TODO
   # is "asc" newest or oldest first? should be oldest
-  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -91,7 +91,7 @@ mail.each do |m|
 	  result = IPDConfig::DB_HANDLE.execute("SELECT e.address, u.nick FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE u.nick = ? ORDER BY e.time_created ASC", [nick])
 	  result.each do |row|
 	    if row[0] == m.from[0]
-	      Stalker.enqueue("email.send", :to => m.from[0], :i_am_already_are => true, :from => m.from[0], :nick => nick, :subject => "Notice")
+	      Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_already_are, :from => m.from[0], :nick => nick, :subject => "Notice")
 	      already_are = true
 	      break
 	    end
@@ -104,9 +104,9 @@ mail.each do |m|
 	  # send request to owner of username
 	  request_code = SecureRandom.hex(16).downcase
 	  IPDConfig::DB_HANDLE.execute("INSERT INTO user_request (action, code, time_created) VALUES (?, ?, ?)", [action, request_code, Time.now.to_i]) 
-	  Stalker.enqueue("email.send", :to => result[0][0], :i_am_request_code => true, :code => request_code, :from => m.from[0], :nick => nick, :bound_to => bound_to, :subject => "Request to add email address")
+	  Stalker.enqueue("email.send", :to => result[0][0], :template => :i_am_request_code, :code => request_code, :from => m.from[0], :nick => nick, :bound_to => bound_to, :subject => "Request to add email address")
 	else
-	  Stalker.enqueue("email.send", :to => m.from[0], :i_am_no_user => true, :from => m.from[0], :nick => nick, :subject => "Notice")
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_no_user, :from => m.from[0], :nick => nick, :subject => "Notice")
 	end
 	# TODO
 	# append next because of loose regexps?
@@ -123,12 +123,12 @@ mail.each do |m|
 	  # check if requesting user is already accepting/declining messages
 	  user = IPDUser.load_by_email(m.from[0])
 	  if (order == "accept" and user.accept_external_messages?) or (order == "decline" and user.decline_external_messages?)
-	    Stalker.enqueue("email.send", :to => m.from[0], :messages_already_are => true, :nick => user.nick, :order => order, :subject => "Notice")
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :messages_already_are, :nick => user.nick, :order => order, :subject => "Notice")
 	    next
 	  end
 	  # send request
 	  request.save
-	  Stalker.enqueue("email.send", :to => m.from[0], :messages_request_code => true, :code => request.code, :nick => user.nick, :order => order, :subject => "Request to #{order} messages")
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :messages_request_code, :code => request.code, :nick => user.nick, :order => order, :subject => "Request to #{order} messages")
 	end
 	# TODO
 	# append next because of loose regexps?
@@ -140,7 +140,7 @@ mail.each do |m|
 	  # check if dump exists
 	  dump = IPDDump.load($1.dash)
 	  unless dump
-	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_no_dump => true, :nick => user.nick, :dump => $1.undash, :address => address, :subject => "Notice")
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_no_dump, :nick => user.nick, :dump => $1.undash, :address => address, :subject => "Notice")
 	    next
 	  end
 	  # check duplicate requests and ignore
@@ -149,21 +149,21 @@ mail.each do |m|
 	  next if request.exists?
 	  # check if user is member of dump
 	  unless dump.has_user?(user.id)
-	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_no_member => true, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_no_member, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
 	    next
 	  end
 	  # check if new address is already member of dump
 	  if user.has_email?(address)
-	    Stalker.enqueue("email.send", :to => m.from[0], :bad_kitty => true, :nick => user.nick, :subject => "Notice")
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :bad_kitty, :nick => user.nick, :subject => "Notice")
 	    next
 	  end
 	  if dump.has_user?(address)
-	    Stalker.enqueue("email.send", :to => m.from[0], :open_dump_already_are => true, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_already_are, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Notice")
 	    next
 	  end
 	  # send request
 	  request.save
-	  Stalker.enqueue("email.send", :to => m.from[0], :open_dump_request_code => true, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_request_code, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
 	end
 	# TODO
 	# append next because of loose regexps?
@@ -242,7 +242,7 @@ mail.each do |m|
 	      # add known users to dump
 	      if user
 		dump.add_user(user.id)
-		Stalker.enqueue("email.send", :to => action[2], :open_dump_notice_invited => true, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
+		Stalker.enqueue("email.send", :to => action[2], :template => :open_dump_notice_invited, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
 		IPDRequest.remove_by_action(result[0][0])
 		IPDConfig::LOG_HANDLE.info("ADD USER #{user.nick} TO DUMP #{dump.alias}")
 	      # invite new users
@@ -253,7 +253,7 @@ mail.each do |m|
 		request.action = ["new user", action].join(",")
 		request.save
 		action = request.action.split(",")
-		Stalker.enqueue("email.send", :to => action[2], :new_user_request_code => true, :code => request.code, :subject => "indypicdump - collect and share")
+		Stalker.enqueue("email.send", :to => action[2], :template => :new_user_request_code, :code => request.code, :subject => "indypicdump - collect and share")
 	      end
 	      next
 	    # new user
@@ -263,7 +263,7 @@ mail.each do |m|
 	      user.save
 	      dump = IPDDump.load(action[1])
 	      dump.add_user(user.id)
-	      Stalker.enqueue("email.send", :to => action[2], :new_user_notice_invited => true, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
+	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
 	      IPDConfig::LOG_HANDLE.info("NEW USER #{action[2]} IS #{user.nick} DUMP #{dump.alias}")
 	      next

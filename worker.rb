@@ -40,52 +40,17 @@ job 'email.send' do |args|
   env.filename = args["filename"]
   env.dump = args["dump"]
   env.address = args["address"]
-  # i am
-  if args["i_am_no_user"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_no_user.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["i_am_already_are"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["i_am_request_code"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_i_am_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  # accept/decline messages
-  elsif args["messages_already_are"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["messages_request_code"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["messages_message"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_messages_message.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  # open dump
-  elsif args["open_dump_no_dump"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_no_dump.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["open_dump_no_member"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_no_member.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["open_dump_already_are"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_already_are.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["open_dump_request_code"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["open_dump_notice_invited"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_open_dump_notice_invited.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  # new user
-  elsif args["new_user_request_code"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_user_request_code.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  elsif args["new_user_notice_invited"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_user_notice_invited.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  # bad kitty
-  elsif args["bad_kitty"]
-    t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_bad_kitty.slim", :pretty => IPDConfig::RENDER_PRETTY)
-  else
-    # TODO
-    # raise some
-    raise
-  end
-  b = t.render(env)
+  template_file = IPDConfig::TEMPLATE_DIR + "/mail_#{args['template']}.slim"
+  raise "TEMPLATE MISSING ERROR" unless File.exists?(template_file)
+  template = Slim::Template.new(template_file, :pretty => IPDConfig::RENDER_PRETTY)
+  body = template.render(env)
   mail = Mail.new do
     from IPDConfig::EMAIL_SELF
     to args['to']
     subject args["subject"] || "Info"
     html_part do
       content_type "text/html; charset=UTF-8"
-      body b
+      body body
     end
   end
   mail.delivery_method :sendmail

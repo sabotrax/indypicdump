@@ -24,9 +24,9 @@ class IPDTest
     end
     mail = Mail.new do
       from	"root@indypicdump.com"
-      to	"tante-anna@indypicdump.com"
-      subject	"some"
-      add_file 	"test/vegetarians-test.gif"
+      to	"me@indypicdump.com"
+      subject	"open foo for bimberman@indypicdump.com"
+      #add_file 	"test/vegetarians-test.gif"
       #add_file 	"test/daffodils_test.jpg"
       #add_file 	"test/volvic_too_small_test.jpg"
       #add_file 	"test/die_w_70er_test.jpg"
