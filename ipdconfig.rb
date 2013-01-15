@@ -48,15 +48,13 @@ module IPDConfig
   POP3_SSL = false
   FETCH_MAILS = 5
   TMP_DIR = PATH + '/tmp'
-  PIC_DIR = PATH + '/pics'
+  PICTURE_DIR = PATH + '/pics'
   GEN_RANDOM_IDS = 200
   NOSHOW_LAST_IDS = 8
   CLIENT_TIMEOUT = 300
-  # TODO cleanup
-  # remove "PIC"
-  PIC_DISPLAY_MOD_SPAN = 259200
-  PIC_DISPLAY_MOD = 0.07
-  PIC_MIN_SIZE = 400
+  PICTURE_DISPLAY_MOD_SPAN = 259200
+  PICTURE_DISPLAY_MOD = 0.07
+  PICTURE_MIN_SIZE = 400
   REPORT_NEW_TIMER = 3600
 
   # User
@@ -74,7 +72,7 @@ module IPDConfig
     3 => "The picture you sent was too small",
     4 => "You are no member of this dump"
   }
-  MSG_DUPLICATE_PIC = 1
+  MSG_DUPLICATE_PICTURE = 1
   MSG_UNKNOWN_DUMP = 2
   MSG_PIC_TOO_SMALL = 3
   MSG_NO_DUMP_MEMBER = 4

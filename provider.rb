@@ -136,7 +136,7 @@ get '/picture/delete/:filename' do
   # TODO
   # what if picture is served at this moment? retry?
   begin
-    File.unlink(IPDConfig::PIC_DIR + "/" + path + "/" + filename)
+    File.unlink(IPDConfig::PICTURE_DIR + "/" + path + "/" + filename)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
   end
@@ -158,7 +158,7 @@ get '/picture/show/user/:nick' do
 	if rnd_picture.empty?
 	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
-	elsif !File.exists?(IPDConfig::PIC_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
+	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
 	end
@@ -199,7 +199,7 @@ end
 
 ##############################
 get '/picture/contact/:nick/about/:filename/in/:dump' do
-  @user = IPDUser.load_by_nick(params[:nick])
+  @user = IPDUser.load(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -216,7 +216,7 @@ get '/picture/contact/:nick/about/:filename/in/:dump' do
     @msg = "User is not owning picture."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  @picture = IPDPicture.load_by_filename(params[:filename])
+  @picture = IPDPicture.load(params[:filename])
   unless params[:dump] == "ud"
     unless IPDDump.exists?(params[:dump])
       @msg = "Dump does not exists."
@@ -236,7 +236,7 @@ end
 
 ##############################
 post '/picture/contact/:nick/about/:filename/in/:dump' do
-  @user = IPDUser.load_by_nick(params[:nick])
+  @user = IPDUser.load(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -253,7 +253,7 @@ post '/picture/contact/:nick/about/:filename/in/:dump' do
     @msg = "User is not owning picture."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  @picture = IPDPicture.load_by_filename(params[:filename])
+  @picture = IPDPicture.load(params[:filename])
   unless params[:dump] == "ud"
     unless IPDDump.exists?(params[:dump])
       @msg = "Dump does not exists."
@@ -285,7 +285,7 @@ end
 
 ##############################
 get '/user/show/:nick' do
-  @user = IPDUser.load_by_nick(params[:nick])
+  @user = IPDUser.load(params[:nick])
   unless @user
     @msg = "No such user."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -389,7 +389,7 @@ get '/*' do
 	if rnd_picture.empty?
 	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
-	elsif !File.exists?(IPDConfig::PIC_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
+	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
 	end

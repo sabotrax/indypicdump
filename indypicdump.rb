@@ -121,7 +121,7 @@ mail.each do |m|
 	  # #exists? checks for existing accepts _and_ declines
 	  next if request.exists?
 	  # check if requesting user is already accepting/declining messages
-	  user = IPDUser.load_by_email(m.from[0])
+	  user = IPDUser.load(m.from[0])
 	  if (order == "accept" and user.accept_external_messages?) or (order == "decline" and user.decline_external_messages?)
 	    Stalker.enqueue("email.send", :to => m.from[0], :template => :messages_already_are, :nick => user.nick, :order => order, :subject => "Notice")
 	    next
@@ -136,7 +136,7 @@ mail.each do |m|
       when /\bopen\s+([a-z0-9][a-z0-9\- ]*)(?<![\- ])\s+for\s+(#{IPDConfig::REGEX_EMAIL})/i
 	address = $2.downcase
 	if IPDUser.exists?(m.from[0])
-	  user = IPDUser.load_by_email(m.from[0])
+	  user = IPDUser.load(m.from[0])
 	  # check if dump exists
 	  dump = IPDDump.load($1.dash)
 	  unless dump
@@ -195,7 +195,7 @@ mail.each do |m|
 		# update mapping of email addresses to users
 		IPDConfig::DB_HANDLE.transaction
 		# TODO
-		# better IPDUser.load_by_nick
+		# better load user
 		result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [action[1]])
 		id_user = result[0][0]
 		result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [action[2]])
@@ -226,7 +226,7 @@ mail.each do |m|
 	    # accept/decline messages
 	    when /(accept|decline) messages/
 	      order = $1
-	      user = IPDUser.load_by_email(action[1])
+	      user = IPDUser.load(action[1])
 	      if order == "accept"
 		user.accept_external_messages!
 	      elsif order == "decline"
@@ -238,7 +238,7 @@ mail.each do |m|
 	    # open dump
 	    when /open dump/
 	      dump = IPDDump.load(action[1])
-	      user = IPDUser.load_by_email(action[2])
+	      user = IPDUser.load(action[2])
 	      # add known users to dump
 	      if user
 		dump.add_user(user.id)
@@ -284,11 +284,11 @@ mail.each do |m|
       # CAUTION
       # "downcase" only works in the ASCII region
       email = m.from[0].downcase
-      user = IPDUser.load_by_email(email)
+      user = IPDUser.load(email)
       next unless user
-      # drop pictures smaller than IPDConfig::PIC_MIN_SIZE
+      # drop pictures smaller than IPDConfig::PICTURE_MIN_SIZE
       img = Magick::Image::from_blob(attachment.body.decoded)[0]
-      if img.columns >= img.rows and img.columns < IPDConfig::PIC_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PIC_MIN_SIZE
+      if img.columns >= img.rows and img.columns < IPDConfig::PICTURE_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PICTURE_MIN_SIZE
 	msg = IPDMessage.new
 	msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
 	msg.time_created = m.date.to_time.to_i
@@ -328,7 +328,7 @@ mail.each do |m|
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{dump.id}\" WHERE original_hash = ?", [pic_hash])
       if result.any?
 	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_DUPLICATE_PIC
+	msg.message_id = IPDConfig::MSG_DUPLICATE_PICTURE
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
@@ -387,11 +387,11 @@ picstack.each do |pic|
   end
   img.resize_to_fit!(resize) if resize
   begin
-    unless Dir.exists?(IPDConfig::PIC_DIR + "/" + pic.path)
-      Dir.mkdir(IPDConfig::PIC_DIR + "/" + pic.path)
+    unless Dir.exists?(IPDConfig::PICTURE_DIR + "/" + pic.path)
+      Dir.mkdir(IPDConfig::PICTURE_DIR + "/" + pic.path)
       IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{pic.path}")
     end
-    img.write(IPDConfig::PIC_DIR + "/" + pic.path + "/" + pic.filename)
+    img.write(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
   end

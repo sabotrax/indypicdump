@@ -19,58 +19,26 @@ require 'ipdhelper'
 
 class IPDUser
   ##############################
-  def self.load_by_email(email)
-    found = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [email])
-    if found.any?
-      user = self.new
-      user.id = found[0][0]
-      user.nick = found[0][1]
-      user.time_created = found[0][2]
-      user.accept_external_messages = found[0][3]
-      result = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
-      result.each do |row|
-	user.email = row[1]
-      end
-    else
-      user = nil
+  def self.load(u)
+    result = []
+    user = nil
+    if u.to_s =~ /^[1-9]\d*$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [u])
+    elsif u =~ /^[a-z\- ]+(?<!-)$/i
+      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [u.undash])
+    elsif u =~ /#{IPDConfig::REGEX_EMAIL}/i
+      result = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [u])
     end
-    return user
-  end
-
-  ##############################
-  def self.load_by_id(id)
-    found = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [id])
-    if found.any?
+    if result.any?
       user = self.new
-      user.id = found[0][0]
-      user.nick = found[0][1]
-      user.time_created = found[0][2]
-      user.accept_external_messages = found[0][3]
-      email = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [id])
-      email.each do |row|
-	user.email = row[1]
-      end
-    else
-      user = nil
-    end
-    return user
-  end
-
-  ##############################
-  def self.load_by_nick(nick)
-    found = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [nick.undash])
-    if found.any?
-      user = self.new
-      user.id = found[0][0]
-      user.nick = found[0][1]
-      user.time_created = found[0][2]
-      user.accept_external_messages = found[0][3]
+      user.id = result[0][0]
+      user.nick = result[0][1]
+      user.time_created = result[0][2]
+      user.accept_external_messages = result[0][3]
       email = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
       email.each do |row|
 	user.email = row[1]
       end
-    else
-      user = nil
     end
     return user
   end

@@ -95,14 +95,14 @@ class IPDPicture
       #puts IPDTest.random_distribution(1000, randnum)
 
       # show newer pics more often
-      span = Time.now.to_i - IPDConfig::PIC_DISPLAY_MOD_SPAN
+      span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
       # get new pictures
       result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_sent > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
 	weighted = []
-	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PIC_DISPLAY_MOD)).each do
+	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD)).each do
 	  weighted.push(rand(randnum.length))
 	end
 	# merge
@@ -182,30 +182,14 @@ class IPDPicture
   end
 
   ##############################
-  def self.load_by_id(id)
-    result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [id])
-    if result.any?
-      picture = self.new
-      picture.id = result[0][0]
-      picture.filename = result[0][1]
-      picture.time_taken = result[0][2]
-      picture.time_sent = result[0][3]
-      picture.id_user = result[0][4]
-      picture.original_hash = result[0][5]
-      picture.id_dump = result[0][6]
-      picture.path = result[0][7]
-      picture.dump = result[0][8]
-    else
-      picture = nil
+  def self.load(p)
+    result = []
+    picture = nil
+    if p.to_s =~ /^[1-9]\d*$/
+      result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [p])
+    elsif p =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
+      result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.filename = ?", [p])
     end
-    return picture
-  end
-
-  ##############################
-  # TODO
-  # better DRY here and above
-  def self.load_by_filename(f)
-    result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.filename = ?", [f])
     if result.any?
       picture = self.new
       picture.id = result[0][0]
@@ -217,8 +201,6 @@ class IPDPicture
       picture.id_dump = result[0][6]
       picture.path = result[0][7]
       picture.dump = result[0][8]
-    else
-      picture = nil
     end
     return picture
   end
@@ -231,7 +213,7 @@ class IPDPicture
       result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [p])
     end
     if result.any?
-      if File.exists?(IPDConfig::PIC_DIR + "/" + result[0][1] + "/" + p)
+      if File.exists?(IPDConfig::PICTURE_DIR + "/" + result[0][1] + "/" + p)
 	picture_exists = result[0][0]
       else
 	IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{result[0][1]}/#{p} in #{caller[0]}")
