@@ -239,6 +239,7 @@ desk
 destruction
 detail
 development
+device
 digestion
 dime
 dinner

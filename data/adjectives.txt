@@ -206,6 +206,7 @@ naughty
 nervous
 new
 noisy
+nuclear
 obedient
 obnoxious
 old
@@ -310,6 +311,7 @@ thick
 thin
 thoughtful
 thundering
+tidy
 tight
 tiny
 tired
