@@ -29,17 +29,13 @@ class IPDPicture
 
   ##############################
   def self.get_random_id(request)
-
     id_dump = IPDDump.dump[request.dump]
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
-      # TODO
-      # better have real IPDDump objects -> can log dump alias
       IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
-      # TODO
-      # catch empty result error
       result = []
       result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
+      raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result.empty?
 
       randnum = []
       begin
@@ -68,13 +64,10 @@ class IPDPicture
     id_dump = IPDDump.dump[request.dump] || request.dump
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
-      # TODO
-      # better have real IPDDump objects -> can log dump alias
       IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
-      # TODO
-      # catch empty result error
       result = []
       result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
+      raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result.empty?
 
       randnum = []
       begin
@@ -149,7 +142,7 @@ class IPDPicture
 	if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
 	  if @clients[key][id_dump][:ids].include?(random_id)
 	    if i == IPDConfig::NOSHOW_LAST_IDS - 1
-	      raise
+	      raise BadLuck, "BAD LUCK RANDOM ID WARNING DUMP #{id_dump}"
 	    else
 	      i += 1
 	      next
@@ -172,8 +165,11 @@ class IPDPicture
 	end
 	break
       end
-    rescue
-      IPDConfig::LOG_HANDLE.warn("BAD LUCK RANDOM ID WARNING DUMP #{id_dump}")
+    rescue DumpEmpty => e
+      IPDConfig::LOG_HANDLE.info(e.message)
+      raise
+    rescue BadLuck => e
+      IPDConfig::LOG_HANDLE.warn(e.message)
       @clients[key][id_dump][:ids] = []
       retry
     end

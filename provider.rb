@@ -32,6 +32,7 @@ require 'ipdmessage'
 require 'ipduser'
 require 'ipddump'
 require 'ipdhelper'
+require 'ipderror'
 
 set :environment, IPDConfig::ENVIRONMENT
 use Rack::Recaptcha, :public_key => IPDConfig::RECAPTCHA_PUB_KEY, :private_key => IPDConfig::RECAPTCHA_PRIV_KEY
