@@ -20,3 +20,6 @@ class IPDError < StandardError; end
 class IPDPictureError < IPDError; end
 class DumpEmpty < IPDPictureError; end
 class BadLuck < IPDPictureError; end
+class PictureMissing < IPDPictureError; end
+
+class IPDDumpError < IPDError; end

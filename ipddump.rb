@@ -120,18 +120,15 @@ class IPDDump
 
   ##############################
   def add_user(u)
-    raise unless u.to_s =~ /^[1-9]\d*$/
+    raise ArgumentError unless u.to_s =~ /^[1-9]\d*$/
     begin
       IPDConfig::DB_HANDLE.transaction
       result = IPDConfig::DB_HANDLE.execute("SELECT id_dump FROM mapping_dump_user WHERE id_dump = ? AND id_user = ?", [self.id, u])
-      raise "USER ALREADY IN DUMP ERROR" if result.any?
+      raise IPDDumpError, "USER ALREADY IN DUMP ERROR" if result.any?
       IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_dump_user (id_dump, id_user) VALUES (?, ?)", [self.id, u])
-    # TODO 
-    # add error classes
-    #rescue SQLite3::Exception => e
-    rescue Exception => e
+    rescue IPDDumpError, SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE ADDING USER TO DUMP #{u} -> #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("ERROR WHILE ADDING USER TO DUMP #{u} -> #{self.alias} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit

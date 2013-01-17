@@ -131,11 +131,7 @@ get '/picture/delete/:filename' do
   id = result[0][0]
   path = result[0][1]
   # delete
-  # TODO
-  # what's a delete's return val?
   IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
-  # TODO
-  # what if picture is served at this moment? retry?
   begin
     File.unlink(IPDConfig::PICTURE_DIR + "/" + path + "/" + filename)
   rescue Exception => e
@@ -165,16 +161,13 @@ get '/picture/show/user/:nick' do
 	end
 	if err
 	  i += 1
-	  raise if i == 5
+	  raise PictureMissing, "PICTURE MISSING ERROR DUMP #{id_dump}" if i == 5
 	  next
 	end
 	break
       end
-    # TODO
-    # use own error class
-    # this is catch all :/
-    rescue Exception => e
-      IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+    rescue DumpEmpty, PictureMissing => e
+      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "PictureMissing"
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
@@ -192,8 +185,6 @@ get '/picture/show/user/:nick' do
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
-    # TODO
-    # better: Pool not found. You might create it? w link
     raise Sinatra::NotFound
   end
 end
@@ -396,16 +387,13 @@ get '/*' do
 	end
 	if err
 	  i += 1
-	  raise if i == 5
+	  raise PictureMissing, "PICTURE MISSING ERROR DUMP #{id_dump}" if i == 5
 	  next
 	end
 	break
       end
-    # TODO
-    # use own error class
-    # this is catch all :/
-    rescue Exception => e
-      IPDConfig::LOG_HANDLE.fatal("PICTURE MISSING ERROR DUMP #{id_dump}")
+    rescue DumpEmpty, PictureMissing => e
+      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "PictureMissing"
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
@@ -423,8 +411,6 @@ get '/*' do
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
-    # TODO
-    # better: Pool not found. You might create it? w link
     raise Sinatra::NotFound
   end
 end

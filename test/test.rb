@@ -153,3 +153,11 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #dump = IPDDump.load(9)
 #puts dump.inspect
 #puts dump.has_user?(1).inspect
+
+# 16
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipddump'
+#dump = IPDDump.load(9)
+##dump.add_user("heino")
+#dump.add_user(1)

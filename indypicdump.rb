@@ -108,8 +108,7 @@ mail.each do |m|
 	else
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_no_user, :from => m.from[0], :nick => nick, :subject => "Notice")
 	end
-	# TODO
-	# append next because of loose regexps?
+	next
       # accept/decline messages
       when /\b(accept|decline)\s+messages?\b/i
 	order = $1.downcase
@@ -130,8 +129,7 @@ mail.each do |m|
 	  request.save
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :messages_request_code, :code => request.code, :nick => user.nick, :order => order, :subject => "Request to #{order} messages")
 	end
-	# TODO
-	# append next because of loose regexps?
+	next
       # open dump
       when /\bopen\s+([a-z0-9][a-z0-9\- ]*)(?<![\- ])\s+for\s+(#{IPDConfig::REGEX_EMAIL})/i
 	address = $2.downcase
@@ -165,8 +163,7 @@ mail.each do |m|
 	  request.save
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_request_code, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
 	end
-	# TODO
-	# append next because of loose regexps?
+	next
       else
 	# i do not understand $1?
     end
