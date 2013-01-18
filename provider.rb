@@ -150,7 +150,7 @@ get '/picture/show/user/:nick' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -317,7 +317,7 @@ post '/dump/create/?' do
     @msg = "Sry, this dump already exists."
     halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
   end
-  reserved = File.readlines(IPDConfig::RESERVED)
+  reserved = File.readlines(IPDConfig::RESERVED_DUMPS)
   # \n chomp hack
   if reserved.include?(dump_alias.undash + "\n")
     @msg = "Sry, reserved word."
@@ -376,7 +376,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM \"#{id_dump}\" p INNER JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM \"#{id_dump}\" p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true

@@ -23,3 +23,9 @@ class BadLuck < IPDPictureError; end
 class PictureMissing < IPDPictureError; end
 
 class IPDDumpError < IPDError; end
+
+class IPDUserError < IPDError; end
+
+class IPDRequestError < IPDError; end
+
+class IPDMessageError < IPDError; end

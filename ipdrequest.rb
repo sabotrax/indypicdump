@@ -23,7 +23,8 @@ class IPDRequest
     IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE action = ?", [action])
   end
 
-  attr_accessor :id, :action, :code, :time_created
+  attr_accessor :id, :action, :time_created
+  attr_reader :code
 
   ##############################
   def initialize
@@ -62,9 +63,7 @@ class IPDRequest
 
   ##############################
   def save
-    if self.action.empty? or self.code.empty?
-      raise
-    end
+    raise IPDRequestError, "ACTION MISSING ERROR" if self.action.empty?
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO user_request (action, code, time_created) VALUES (?, ?, ?)", [self.action, self.code, self.time_created])

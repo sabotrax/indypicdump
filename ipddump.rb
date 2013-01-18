@@ -88,9 +88,7 @@ class IPDDump
 
   ##############################
   def save
-    if self.alias.empty?
-      raise
-    end
+    raise IPDDumpError, "ALIAS MISSING ERROR" if self.alias.empty?
     begin
       IPDConfig::DB_HANDLE.transaction
       IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])

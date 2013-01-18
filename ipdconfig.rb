@@ -63,6 +63,8 @@ module IPDConfig
   REQUEST_ACCEPT_SPAN = 172800
   EMAIL_USER_MGMT = 'me@indypicdump.com'
   TEMPLATE_DIR = PATH + '/templates'
+  # list of nicks users may not have
+  RESERVED_NICKS = PATH + '/data/reserved_nicks.txt'
 
   # Message
   MSG_SHOW_SPAN = 604800
@@ -79,7 +81,7 @@ module IPDConfig
 
   # Dump
   # list of names dumps may not have
-  RESERVED = PATH + '/data/reserved.txt'
+  RESERVED_DUMPS = PATH + '/data/reserved_dumps.txt'
 
   # Misc
   REGEX_EMAIL = %q{[a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b}

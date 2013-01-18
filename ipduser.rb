@@ -27,7 +27,7 @@ class IPDUser
     elsif u =~ /^[a-z\- ]+(?<!-)$/i
       result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [u.undash])
     elsif u =~ /#{IPDConfig::REGEX_EMAIL}/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e INNER JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [u])
+      result = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [u])
     end
     if result.any?
       user = self.new
@@ -44,18 +44,13 @@ class IPDUser
   end
 
   ##############################
-  def self.exists?(i)
-    result = []
-    user_exists = false
-    if i.to_s =~ /^[1-9]\d*$/
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE id = ?", [i])
-    elsif i =~ /^[a-z\- ]+(?<!-)$/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [i.undash])
-    elsif i =~ /#{IPDConfig::REGEX_EMAIL}/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT u.id FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [i])
+  def self.exists?(u)
+    user = self.load(u)
+    if user
+      return true
+    else
+      return false
     end
-    user_exists = true if result.any?
-    return user_exists
   end
 
   attr_accessor :id, :nick, :time_created, :posts
@@ -87,9 +82,7 @@ class IPDUser
 
   ##############################
   def save
-    if self.email.empty?
-      raise
-    end
+    raise IPDUserError, "EMAIL MISSING ERROR" if self.email.empty?
     begin
       IPDConfig::DB_HANDLE.transaction
       if self.id == 0
@@ -219,10 +212,11 @@ class IPDUser
     # create unique nick from wordlists
     nick = ""
     i = 0
+    reserved = File.readlines(IPDConfig::RESERVED_NICKS)
     while true do
       nick = adjectives.sample.chomp + " " + nouns.sample.chomp
-      found = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
-      break if found.empty?
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
+      break if result.empty? and !reserved.include?(nick + "\n")
       if i > max_nicks
 	IPDConfig::LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
 	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"

@@ -41,7 +41,6 @@ job 'email.send' do |args|
   env.dump = args["dump"]
   env.address = args["address"]
   template_file = IPDConfig::TEMPLATE_DIR + "/mail_#{args['template']}.slim"
-  raise "TEMPLATE MISSING ERROR" unless File.exists?(template_file)
   template = Slim::Template.new(template_file, :pretty => IPDConfig::RENDER_PRETTY)
   body = template.render(env)
   mail = Mail.new do

@@ -30,7 +30,7 @@ class IPDMessage
   ##############################
   def save
     if self.message_id == 0 or self.id_user == 0
-      raise
+      raise IPDMessageError, "MESSAGE_ID OR ID_USER MISSING ERROR"
     end
     IPDConfig::DB_HANDLE.transaction
     IPDConfig::DB_HANDLE.execute("INSERT INTO message (message_id, time_created, id_user) VALUES (?, ?, ?)", [self.message_id, self.time_created, self.id_user])

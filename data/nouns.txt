@@ -34,6 +34,7 @@ apparel
 apple
 apples
 appliance
+apprentice
 approval
 arch
 argument
@@ -225,6 +226,7 @@ curtain
 curve
 cushion
 dad
+daffodil
 dagger
 daughter
 day
@@ -482,6 +484,7 @@ loaf
 lock
 locket
 look
+lord
 loss
 love
 low
@@ -494,12 +497,14 @@ maid
 mailbox
 man
 manager
+mansion
 map
 marble
 mark
 market
 mask
 mass
+master
 match
 meal
 measure
@@ -513,6 +518,7 @@ middle
 milk
 mind
 mine
+miner
 minister
 mint
 minute
@@ -583,6 +589,7 @@ patch
 payment
 peace
 pear
+peeling
 pen
 pencil
 person
