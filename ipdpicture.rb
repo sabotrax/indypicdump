@@ -28,36 +28,6 @@ class IPDPicture
   end
 
   ##############################
-  def self.get_random_id(request)
-    id_dump = IPDDump.dump[request.dump]
-    @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
-    if @random_pool[id_dump].empty?
-      IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
-      result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
-      raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result.empty?
-
-      randnum = []
-      begin
-	generator = RealRand::RandomOrg.new
-	# TODO
-	# - check if result[0][0] - 1 is member of random array
-	# as in core rand(max) -> max is never reached
-	randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
-      # TODO
-      # retry? (The Ruby Programming Language, 162)
-      rescue Exception => e
-	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
-	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
-	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
-      end
-      
-      @random_pool[id_dump] = randnum
-    end
-    @random_pool[id_dump].shift
-  end
-
-  ##############################
   def self.get_weighted_random_id(request)
     require "ipdtest"
 
@@ -67,15 +37,17 @@ class IPDPicture
       IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       result = []
       result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
-      raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result.empty?
+      raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result[0][0] == 0
 
       randnum = []
       begin
-	generator = RealRand::RandomOrg.new
-	# TODO
-	# - check if result[0][0] - 1 is member of random array
-	# as in core rand(max) -> max is never reached
-	randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
+	# one-picture-dumps just aren't random
+	if result[0][0] == 1
+	  (1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push([0]) }
+	else
+	  generator = RealRand::RandomOrg.new
+	  randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
+	end
       # TODO
       # retry? (The Ruby Programming Language, 162)
       # better use own error class vs. catchall
@@ -137,7 +109,6 @@ class IPDPicture
 
       # find non-sequential id
       while true do
-	#random_id = self.get_random_id(request)
 	random_id = self.get_weighted_random_id(request)
 	if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
 	  if @clients[key][id_dump][:ids].include?(random_id)
