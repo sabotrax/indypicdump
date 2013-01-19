@@ -84,14 +84,14 @@ module IPDConfig
   RESERVED_DUMPS = PATH + '/data/reserved_dumps.txt'
   DUMP_HONOR_TITLES = [
     "Grandmaster Dump %n",
-    "%n, Knight of %d",
+    "%n, Knight of \"%d\"",
     "%n, Steel Panther",
     "%n, Pluto is a planet, dammit!",
     "%n, Little Miss Sunshine",
     "%n, Number of the Beast",
     "%n and the Bandit",
     "%n, Dances with Wolves",
-    "%n, Apprentice of %d",
+    "%n, Apprentice of \"%d\"",
     "%i\"Redshirt\"",
   ]
 

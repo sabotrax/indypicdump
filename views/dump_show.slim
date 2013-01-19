@@ -1,4 +1,4 @@
-| Some facts about #{@dump.alias.undash}.
+| Some facts about "#{@dump.alias.undash}".
 br
 p
   | It has been created on #{Time.at(@dump.time_created).strftime("%e.%m.%Y %H:%M")}.
@@ -21,7 +21,7 @@ p
   - else
     | #{@user_counter} users are posting to it.
     br
-    | The best among them are called:
+    | Among the best are:
     br
     ol
       - @users.each do |user|
