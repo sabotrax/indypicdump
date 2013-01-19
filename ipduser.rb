@@ -53,7 +53,7 @@ class IPDUser
     end
   end
 
-  attr_accessor :id, :nick, :time_created, :posts
+  attr_accessor :id, :nick, :time_created, :posts, :nick_w_title
 
   ##############################
   def initialize
@@ -64,6 +64,7 @@ class IPDUser
     @posts = 0
     @has_messages = false
     @accept_external_messages = false
+    @nick_w_title = ""
   end
 
   ##############################

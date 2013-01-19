@@ -299,6 +299,47 @@ get '/user/show/:nick' do
 end
 
 ##############################
+get '/dump/show/:dump' do
+  @dump = IPDDump.load(params[:dump])
+  unless @dump
+    @msg = "No such dump."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{@dump.id}\"")
+  @picture_counter = result[0][0]
+  result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM mapping_dump_user WHERE id_dump = ?", [@dump.id])
+  @user_counter = result[0][0]
+  result = IPDConfig::DB_HANDLE.execute("SELECT id_user, count(1) posts FROM \"#{@dump.id}\" GROUP BY id_user ORDER BY posts DESC, id_user ASC LIMIT 10")
+  @users = []
+  result.each do |row|
+    user = IPDUser.load(row[0])
+    unless user
+      IPDConfig::LOG_HANDLE.error("USER MISSING ERROR ID #{row[0]} / #{caller[0]}")
+      next
+    end
+    user.posts = row[1]
+    @users.push(user)
+  end
+  # add titles
+  (0..@users.length - 1).each do |i|
+    if IPDConfig::DUMP_HONOR_TITLES[i]
+      if IPDConfig::DUMP_HONOR_TITLES[i] =~ /%i(\"[^"]+\")/
+	nick = @users[i].nick.split(" ")
+	nick.insert(1, $1)
+	nick_w_title = nick.join(" ")
+      else
+	nick_w_title = IPDConfig::DUMP_HONOR_TITLES[i].sub(/%n/, @users[i].nick)
+	nick_w_title = nick_w_title.sub(/%d/, @dump.alias.undash)
+      end
+      @users[i].nick_w_title = nick_w_title 
+    else
+      break
+    end
+  end
+  slim :dump_show, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
 get '/dump/create/?' do
   @msg = ""
   slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY

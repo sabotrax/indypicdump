@@ -1,0 +1,28 @@
+| Some facts about #{@dump.alias.undash}.
+br
+p
+  | It has been created on #{Time.at(@dump.time_created).strftime("%e.%m.%Y %H:%M")}.
+  br
+  - if @picture_counter == 0
+    | It still comprises no pictures.
+  - elsif @picture_counter == 1
+    | It comprises 1 picture.
+  - else
+    | It comprises #{@picture_counter} pictures.
+p
+  - if @user_counter == 1
+    | Only 1 user is posting to it.
+    br
+    - if @picture_counter == 0
+      - name = @users[0].nick
+    - else
+      - name = @users[0].nick_w_title
+    | She goes by the name #{name}.
+  - else
+    | #{@user_counter} users are posting to it.
+    br
+    | The best among them are called:
+    br
+    ol
+      - @users.each do |user|
+        li #{user.nick_w_title}

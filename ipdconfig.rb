@@ -82,6 +82,18 @@ module IPDConfig
   # Dump
   # list of names dumps may not have
   RESERVED_DUMPS = PATH + '/data/reserved_dumps.txt'
+  DUMP_HONOR_TITLES = [
+    "Grandmaster Dump %n",
+    "%n, Knight of %d",
+    "%n, Steel Panther",
+    "%n, Pluto is a planet, dammit!",
+    "%n, Little Miss Sunshine",
+    "%n, Number of the Beast",
+    "%n and the Bandit",
+    "%n, Dances with Wolves",
+    "%n, Apprentice of %d",
+    "%i\"Redshirt\"",
+  ]
 
   # Misc
   REGEX_EMAIL = %q{[a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b}
