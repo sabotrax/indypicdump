@@ -91,6 +91,13 @@ textarea {
   font-family: 'Inconsolata', sans-serif;
 }
 
+label {
+  float: left;
+  text-align: right;
+  margin-right: 15px;
+  width: 50px;
+}
+
 .input {
   width: 150px;
   color: #859CE6;

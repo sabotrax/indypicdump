@@ -60,8 +60,6 @@ unless test
 end
 
 unless test
-  # TODO
-  # is "asc" newest or oldest first? should be oldest
   mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
   #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
@@ -259,6 +257,20 @@ mail.each do |m|
 	      user.email = action[2]
 	      user.save
 	      dump = IPDDump.load(action[1])
+	      dump.add_user(user.id)
+	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
+	      IPDRequest.remove_by_action(result[0][0])
+	      IPDConfig::LOG_HANDLE.info("NEW USER #{action[2]} IS #{user.nick} DUMP #{dump.alias}")
+	      next
+	    # create dump (and user)
+	    when /create dump/
+	      dump = IPDDump.new
+	      dump.alias = action[1]
+	      dump.save
+	      IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias}")
+	      user = IPDUser.new
+	      user.email = action[2]
+	      user.save
 	      dump.add_user(user.id)
 	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])

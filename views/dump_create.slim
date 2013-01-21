@@ -2,15 +2,16 @@
 br
 p
   | you can create dumps as collections of your pictures.
-  br
-  | Just be sure to have read our <a href="/guidelines.html">guidelines</a>.
 - unless @msg.empty?
   p#message #{@msg}
 form action="/dump/create" method="post"
   p
     == recaptcha_tag(:challenge)
+  label Dump
   input type="text" name="dump" class="input"
+  br
+  br
+  label Email
+  input type="text" name="email" class="input"
   | &nbsp;
   input type="submit" value="Create dump" class="button"
-  p
-    | You can't create dumps yourself as we're running beta. But you may <a href="mailto:beta@indypicdump.com?subject=Request%20dump">ask us</a> to create it.

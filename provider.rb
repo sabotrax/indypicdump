@@ -33,6 +33,7 @@ require 'ipduser'
 require 'ipddump'
 require 'ipdhelper'
 require 'ipderror'
+require 'ipdrequest'
 
 set :environment, IPDConfig::ENVIRONMENT
 use Rack::Recaptcha, :public_key => IPDConfig::RECAPTCHA_PUB_KEY, :private_key => IPDConfig::RECAPTCHA_PRIV_KEY
@@ -347,7 +348,6 @@ end
 
 ##############################
 post '/dump/create/?' do
-  protected!
   # CAUTION
   # "downcase" only works in the ASCII region
   dump_alias = params[:dump].strip.downcase
@@ -364,12 +364,31 @@ post '/dump/create/?' do
     @msg = "Sry, reserved word."
     halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
   end
-  dump = IPDDump.new
-  dump.alias = dump_alias
-  dump.save
-  IPDDump.reload_dump_map
-  IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias} / #{request.ip} / #{request.user_agent}")
-  @msg = "OK, now add pictures to <a href=\"/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
+  address = params[:email].strip.downcase
+  user = IPDUser.load(address)
+  # create dump and add known users to it
+  if user
+    dump = IPDDump.new
+    dump.alias = dump_alias
+    dump.save
+    IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias} / #{request.ip} / #{request.user_agent}")
+    dump.add_user(user.id)
+    Stalker.enqueue("email.send", :to => address, :template => :create_dump_notice_creator, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
+    IPDConfig::LOG_HANDLE.info("ADD USER #{user.nick} TO DUMP #{dump.alias}")
+    IPDDump.reload_dump_map
+    @msg = "OK, now add pictures to <a href=\"/#{dump.alias}\">http://indypicdump/#{dump.alias}</a>."
+  # invite new users
+  else
+    unless address =~ /^#{IPDConfig::REGEX_EMAIL}$/i
+      @msg = "Invalid email address."
+      halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
+    end
+    request = IPDRequest.new
+    request.action = ["create dump", dump_alias, address].join(",")
+    request.save
+    Stalker.enqueue("email.send", :to => address, :template => :new_user_request_code, :code => request.code, :subject => "indypicdump - collect and share")
+    @msg = "Hello new user,<br><p>we just sent an invitation to the address you provided. Please check your email.</p>"
+  end
   slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
@@ -406,6 +425,12 @@ end
 ##############################
 not_found do
   @msg = "Not found."
+  slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+error do
+  @msg =  "<p>\"I have not failed. I've just found 10,000 ways that won't work.\" -- Thomas A. Edison</p><p>Having read this quote you will probably be lenient with us because this is but more than an error page.</p>"
   slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 

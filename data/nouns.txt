@@ -32,7 +32,6 @@ ants
 apparatus
 apparel
 apple
-apples
 appliance
 apprentice
 approval
@@ -86,7 +85,6 @@ bell
 berry
 bike
 bird
-birth
 birthday
 bit
 bite
@@ -160,6 +158,7 @@ chalk
 chance
 change
 channel
+chaos
 cheese
 cherry
 chess
@@ -202,7 +201,6 @@ cough
 country
 cover
 cow
-cows
 crack
 cracker
 crate
@@ -213,6 +211,7 @@ creature
 credit
 crib
 crime
+crocodile
 crook
 crow
 crowd
@@ -230,7 +229,6 @@ daffodil
 dagger
 daughter
 day
-death
 debt
 decision
 deer
@@ -258,9 +256,7 @@ division
 dock
 doctor
 dog
-dogs
 doll
-dolls
 donkey
 door
 downtown
@@ -336,6 +332,7 @@ force
 fork
 form
 fowl
+fox
 frame
 friction
 friend
@@ -546,6 +543,7 @@ needle
 nerve
 nest
 net
+neutron
 news
 night
 noise
@@ -561,6 +559,7 @@ ocean
 offer
 office
 oil
+olive
 operation
 opinion
 orange
@@ -592,6 +591,7 @@ pear
 peeling
 pen
 pencil
+penguin
 person
 pest
 pet
@@ -604,6 +604,7 @@ pipe
 pizza
 place
 plane
+plankton
 plant
 plantation
 plastic
@@ -618,6 +619,7 @@ point
 poison
 police
 polish
+polka
 pollution
 popcorn
 porter
@@ -629,6 +631,7 @@ power
 price
 print
 prison
+problem
 process
 produce
 profit
@@ -698,6 +701,7 @@ sack
 sail
 salt
 sand
+sandwich
 scale
 scarecrow
 scarf
@@ -710,6 +714,7 @@ screw
 sea
 seashore
 seat
+secret
 secretary
 seed
 selection
@@ -735,6 +740,7 @@ sign
 silk
 silver
 sink
+siren
 sister
 size
 skate
@@ -760,6 +766,7 @@ sock
 soda
 sofa
 sombrero
+something
 son
 song
 sort
@@ -919,6 +926,7 @@ wing
 winter
 wire
 wish
+wolf
 woman
 wood
 wool
@@ -939,6 +947,7 @@ year
 yoke
 zebra
 zephyr
+zigzag
 zinc
 zipper
 zoo

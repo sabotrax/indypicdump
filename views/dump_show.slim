@@ -1,4 +1,4 @@
-| Some facts about "#{@dump.alias.undash}".
+| Some facts about "<a href="/#{@dump.alias.dash}" id="landing">#{@dump.alias.undash}</a>".
 br
 p
   | It has been created on #{Time.at(@dump.time_created).strftime("%e.%m.%Y %H:%M")}.
@@ -17,7 +17,7 @@ p
       - name = @users[0].nick
     - else
       - name = @users[0].nick_w_title
-    | She goes by the name #{name}.
+    | She goes by the name <a href="/user/show/#{@users[0].nick.dash}" id="landing">#{name}</a>.
   - else
     | #{@user_counter} users are posting to it.
     br
@@ -25,4 +25,4 @@ p
     br
     ol
       - @users.each do |user|
-        li #{user.nick_w_title}
+        li &middot; <a href="/user/show/#{user.nick.dash}" id="landing">#{user.nick_w_title}</a>
