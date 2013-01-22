@@ -229,6 +229,7 @@ mail.each do |m|
 	      end
 	      user.save
 	      IPDRequest.remove_by_action(result[0][0])
+	      IPDConfig::LOG_HANDLE.info("USER REQUEST #{user.nick} #{order.upcase}S MESSAGES")
 	      next
 	    # open dump
 	    when /open dump/
@@ -239,7 +240,7 @@ mail.each do |m|
 		dump.add_user(user.id)
 		Stalker.enqueue("email.send", :to => action[2], :template => :open_dump_notice_invited, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
 		IPDRequest.remove_by_action(result[0][0])
-		IPDConfig::LOG_HANDLE.info("ADD USER #{user.nick} TO DUMP #{dump.alias}")
+		IPDConfig::LOG_HANDLE.info("USER REQUEST ADD USER #{user.nick} TO DUMP #{dump.alias}")
 	      # invite new users
 	      else
 		IPDRequest.remove_by_action(result[0][0])
@@ -260,21 +261,20 @@ mail.each do |m|
 	      dump.add_user(user.id)
 	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
-	      IPDConfig::LOG_HANDLE.info("NEW USER #{action[2]} IS #{user.nick} DUMP #{dump.alias}")
+	      IPDConfig::LOG_HANDLE.info("USER REQUEST NEW USER #{action[2]} IS #{user.nick} IN DUMP #{dump.alias}")
 	      next
 	    # create dump (and user)
 	    when /create dump/
 	      dump = IPDDump.new
 	      dump.alias = action[1]
 	      dump.save
-	      IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias}")
 	      user = IPDUser.new
 	      user.email = action[2]
 	      user.save
 	      dump.add_user(user.id)
 	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
-	      IPDConfig::LOG_HANDLE.info("NEW USER #{action[2]} IS #{user.nick} DUMP #{dump.alias}")
+	      IPDConfig::LOG_HANDLE.info("USER REQUEST NEW DUMP #{dump.alias} BY #{action[2]} IS NEW USER #{user.nick}")
 	      next
 	  end
 	else

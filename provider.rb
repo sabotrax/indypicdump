@@ -94,7 +94,7 @@ Thread.new do
       # TODO
       # better lock clients hash through this operations
       # clients could have been changed somewhere else (by adding new clients)
-      IPDConfig::LOG_HANDLE.info("REMOVED STALE CLIENTS #{s1 - IPDPicture.clients.size}")
+      IPDConfig::LOG_HANDLE.info("REMOVED STALE CLIENTS #{s1 - IPDPicture.clients.size}/#{s1}")
     end
   end
 end
@@ -263,7 +263,6 @@ post '/picture/contact/:nick/about/:filename/in/:dump' do
     halt slim :contact, :pretty => IPDConfig::RENDER_PRETTY
   end
   message = params[:message].gsub(/\r/, "").strip
-  # regex = %r{([a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum))\b}i
   message.gsub!(/(#{IPDConfig::REGEX_EMAIL})/i, '<a href="mailto:\1?subject=Your fan mail">\1</a>')
   Stalker.enqueue("email.send", :to => @user.email.first, :template => :messages_message, :message => message, :nick => @user.nick, :path => @picture.path, :filename => @picture.filename, :subject => "A message from a fan or not")
   @msg = "Message sent. You will be redirected."
@@ -353,6 +352,10 @@ post '/dump/create/?' do
   dump_alias = params[:dump].strip.downcase
   dump_alias.tr!(" ", "-")
   redirect '/dump/create' if dump_alias.nil? or dump_alias.empty? or dump_alias !~ /^[a-zA-Z0-9][a-zA-Z0-9\-]*(?<!-)$/ or !recaptcha_valid?
+  if dump_alias.length > 64
+    @msg = "Keep dump names shorter than 64 characters."
+    halt slim :dump_create, :pretty => IPDConfig::RENDER_PRETTY
+  end
   result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [dump_alias])
   if result.any?
     @msg = "Sry, this dump already exists."
