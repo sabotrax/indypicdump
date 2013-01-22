@@ -375,34 +375,39 @@ end
 # process pics
 
 picstack.each do |pic|
-  # autoorient
-  img = Magick::Image::read(IPDConfig::TMP_DIR + "/" + pic.filename).first
-  img.auto_orient!
-  # read EXIF DateTime
-  # EXIF DateTime is local time w/o time zone information
-  date = img.get_exif_by_entry('DateTime')[0][1]
-  if date =~ /^\d{4}:\d\d:\d\d \d\d:\d\d:\d\d$/
-    # CAUTION
-    # DateTime.to_time applies the local time zone
-    # so we subtract the time zone offset from it
-    time_taken = DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time
-    pic.time_taken = time_taken.to_i - time_taken.gmt_offset
+  container = Magick::ImageList.new
+  container.from_blob IO.read(IPDConfig::TMP_DIR + "/" + pic.filename)
+  container.each do |img|
+    # autoorient
+    img.auto_orient!
+    # read EXIF DateTime
+    # EXIF DateTime is local time w/o time zone information
+    date = img.get_exif_by_entry('DateTime')[0][1]
+    if date =~ /^\d{4}:\d\d:\d\d \d\d:\d\d:\d\d$/
+      # CAUTION
+      # DateTime.to_time applies the local time zone
+      # so we subtract the time zone offset from it
+      time_taken = DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time
+      pic.time_taken = time_taken.to_i - time_taken.gmt_offset
+    end
+    # resize
+    if img.columns >= img.rows and img.columns > IPDConfig::PICTURE_MAX_HORZ_SIZE
+      resize = IPDConfig::PICTURE_MAX_HORZ_SIZE
+    elsif img.columns < img.rows and img.rows > IPDConfig::PICTURE_MAX_VERT_SIZE
+      resize = IPDConfig::PICTURE_MAX_VERT_SIZE
+    end
+    img.resize_to_fit!(resize) if resize
+    break unless pic.filename =~ /\.gif$/i
   end
-  # resize
-  if img.columns >= img.rows and img.columns > 800
-    resize = 800
-  elsif img.columns < img.rows and img.rows > 600
-    resize = 600
-  end
-  img.resize_to_fit!(resize) if resize
   begin
     unless Dir.exists?(IPDConfig::PICTURE_DIR + "/" + pic.path)
       Dir.mkdir(IPDConfig::PICTURE_DIR + "/" + pic.path)
       IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{pic.path}")
     end
-    img.write(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename)
+    IO.binwrite(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename, container.to_blob)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    raise
   end
   # seems ok, so insert into db
   IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_sent, pic.id_user, pic.original_hash, pic.id_dump, pic.path])
@@ -411,6 +416,7 @@ picstack.each do |pic|
     File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    raise
   end
   IPDConfig::LOG_HANDLE.info("ADD PICTURE #{pic.filename} DUMP #{pic.id_dump}")
 end

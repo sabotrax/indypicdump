@@ -24,8 +24,13 @@ class IPDTest
     end
     mail = Mail.new do
       from	"root@indypicdump.com"
-      to	"me@indypicdump.com"
-      subject	"decline messages"
+      to	"foo@indypicdump.com"
+      subject	"some"
+      add_file 	"test/beach_test.jpg"
+      #add_file 	"test/snowboard_animated_test.gif"
+      #add_file 	"test/static_test.gif"
+      #add_file 	"test/jungfernstieg_test.jpg"
+      #add_file 	"test/hypnotoad_test.gif"
       #add_file 	"test/silvi_test.jpg"
       #add_file 	"test/vegetarians-test.gif"
       #add_file 	"test/daffodils_test.jpg"
