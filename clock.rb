@@ -24,3 +24,4 @@ include Clockwork
 handler { |job| Stalker.enqueue(job) }
 
 every 1.hours, 'user_requests.remove_stale'
+every 1.day, 'message.remove_old'

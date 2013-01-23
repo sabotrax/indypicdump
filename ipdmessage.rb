@@ -16,6 +16,12 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 class IPDMessage
+  ##############################
+  def self.remove_old(id_user, timestamp)
+    IPDConfig::DB_HANDLE.execute("DELETE FROM message WHERE time_created <= ? AND id_user = ?", [timestamp, id_user])
+  end
+
+  ##############################
   attr_accessor :id, :message_id, :message_text, :time_created, :id_user
 
   ##############################

@@ -159,6 +159,14 @@ mail.each do |m|
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_request_code, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
 	end
 	next
+      # did read
+      when /\bdid\s+read\b/i
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load(m.from[0])
+	  # remove messages older than the time of mailing
+	  IPDMessage.remove_old(user.id, m.date.to_time.to_i)
+	  IPDConfig::LOG_HANDLE.info("USER REQUEST DID READ #{m.from[0]}")
+	end
     end
     next
   end
@@ -314,7 +322,8 @@ mail.each do |m|
 	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user.nick} ORIGINAL ID #{result[0][0]} DUMP #{dump.alias}")
 	# CAUTION
 	# we allow duplicates in test mode
-	next unless test
+	#next unless test
+	next
       end
 
       IPDConfig::LOG_HANDLE.info("SENDER #{email}")

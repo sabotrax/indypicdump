@@ -60,14 +60,32 @@ job 'user_requests.remove_stale' do
   now = Time.now
   begin
     IPDConfig::DB_HANDLE.transaction
-    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE time_created <= ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
+    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE time_created < ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
     if result.any?
-      IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE time_created <= ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
+      IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE time_created < ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
       IPDConfig::LOG_HANDLE.info("REMOVED STALE USER REQUESTS #{result.size}")
     end
   rescue SQLite3::Exception => e
     IPDConfig::DB_HANDLE.rollback
     IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING STALE USER REQUESTS #{now.to_i}")
+    raise
+  end
+  IPDConfig::DB_HANDLE.commit
+end
+
+##############################
+job 'message.remove_old' do
+  now = Time.now
+  begin
+    IPDConfig::DB_HANDLE.transaction
+    result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE time_created < ?", [now.to_i - IPDConfig::MSG_SHOW_SPAN])
+    if result.any?
+      IPDConfig::DB_HANDLE.execute("DELETE FROM message WHERE time_created < ?", [now.to_i - IPDConfig::MSG_SHOW_SPAN])
+      IPDConfig::LOG_HANDLE.info("REMOVED OLD MESSAGES #{result.size}")
+    end
+  rescue SQLite3::Exception => e
+    IPDConfig::DB_HANDLE.rollback
+    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING OLD MESSAGES #{now.to_i}")
     raise
   end
   IPDConfig::DB_HANDLE.commit
