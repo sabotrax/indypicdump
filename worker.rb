@@ -27,12 +27,11 @@ include Stalker
 ##############################
 job 'email.send' do |args|
   class Env
-    attr_accessor :from, :nick, :bound_to, :code, :order, :message, :path, :filename, :dump, :address
+    attr_accessor :from, :nick, :code, :order, :message, :path, :filename, :dump, :address
   end
   env = Env.new
   env.from = args["from"]
   env.nick = args["nick"]
-  env.bound_to = args["bound_to"]
   env.code = args["code"]
   env.order = args["order"]
   env.message = args["message"]
