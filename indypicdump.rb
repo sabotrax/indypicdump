@@ -374,7 +374,7 @@ picstack.each do |pic|
       Dir.mkdir(IPDConfig::PICTURE_DIR + "/" + pic.path)
       IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{pic.path}")
     end
-    IO.binwrite(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename, container.to_blob)
+    File.open(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename, 'wb') { |f| f.write container.to_blob }
   rescue Exception => e
     IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
     raise
