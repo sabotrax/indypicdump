@@ -90,13 +90,15 @@ mail.each do |m|
 	    Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_already_are, :from => m.from[0], :nick => nick, :subject => "Notice")
 	    next
 	  end
-	  # check if requesting email address is already bound to any username and expand request mail
+	  # check if requesting email address is already bound to any username
 	  result = IPDConfig::DB_HANDLE.execute("SELECT u.nick FROM user u JOIN mapping_user_email_address m ON u.id = m.id_user JOIN email_address e ON m.id_address = e.id WHERE e.address = ?", [m.from[0]])
-	  bound_to = ""
-	  bound_to = result[0][0] if result.any?
+	  if result.any?
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_some_is, :from => m.from[0], :nick => nick, :subject => "Notice")
+	    next
+	  end
 	  # send request to owner of username
 	  request.save
-	  Stalker.enqueue("email.send", :to => user.email.first, :template => :i_am_request_code, :code => request.code, :from => m.from[0], :nick => nick, :bound_to => bound_to, :subject => "Request to add email address")
+	  Stalker.enqueue("email.send", :to => user.email.first, :template => :i_am_request_code, :code => request.code, :from => m.from[0], :nick => nick, :subject => "Request to add email address")
 	# send notification of non-existing user
 	else
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_no_user, :from => m.from[0], :nick => nick, :subject => "Notice")
@@ -157,8 +159,6 @@ mail.each do |m|
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :open_dump_request_code, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :address => address, :subject => "Request to open dump")
 	end
 	next
-      else
-	# i do not understand $1?
     end
     next
   end
@@ -181,13 +181,6 @@ mail.each do |m|
 	  case action[0].downcase
 	    # i am
 	    when "i am"
-	      # update mapping of email addresses to users
-	      # delete mapping of address to some other user
-	      if IPDEmail.exists?(action[2])
-		user = IPDUser.load(action[2])
-		user.remove_email(action[2])
-		user.save
-	      end
 	      # add address to requesting user
 	      user = IPDUser.load(action[1])
 	      user.email = action[2]
