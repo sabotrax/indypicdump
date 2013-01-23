@@ -194,3 +194,10 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #dump = IPDDump.new
 #puts dump.inspect
 #dump.save
+
+# 20
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipdrequest'
+#request = IPDRequest.new
+#puts request.exists?

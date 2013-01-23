@@ -23,10 +23,10 @@ class IPDTest
       delivery_method :test
     end
     mail = Mail.new do
-      from	"root@indypicdump.com"
-      to	"foo@indypicdump.com"
-      subject	"some"
-      add_file 	"test/beach_test.jpg"
+      from	"smaug@indypicdump.com"
+      to	"me@indypicdump.com"
+      subject	"i am lucky wall"
+      #add_file 	"test/beach_test.jpg"
       #add_file 	"test/snowboard_animated_test.gif"
       #add_file 	"test/static_test.gif"
       #add_file 	"test/jungfernstieg_test.jpg"

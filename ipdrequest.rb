@@ -36,6 +36,7 @@ class IPDRequest
 
   ##############################
   def exists?
+    raise IPDRequestError, "ACTION MISSING ERROR" if self.action.empty?
     request_exists = false
     action = []
     action.push(self.action)
