@@ -167,6 +167,31 @@ mail.each do |m|
 	  IPDMessage.remove_old(user.id, m.date.to_time.to_i)
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST DID READ #{m.from[0]}")
 	end
+	next
+      # stats please
+      when /\bstats\s+please\b/i
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load(m.from[0])
+	  user_hash = {
+	    :nick => user.nick,
+	    :time_created => user.time_created,
+	    :accept_messages => user.accept_external_messages?,
+	  }
+	  email_list = user.email
+	  result = IPDConfig::DB_HANDLE.execute("SELECT d.id, d.alias FROM dump d JOIN mapping_dump_user m ON d.id = m.id_dump WHERE m.id_user= ? ORDER BY d.alias ASC", [user.id])
+	  dump_list = []
+	  picture_counter = 0
+	  result.each do |row|
+	    result2 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ? AND id_dump = ?", [user.id, row[0]])
+	    picture_counter += result2[0][0]
+	    dump_list.push({
+	      :alias => row[1],
+	      :picture_counter => result2[0][0]
+	    })
+	  end
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :picture_counter => picture_counter, :subject => "Your stats")
+	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
+	end
     end
     next
   end

@@ -1,0 +1,36 @@
+doctype 5
+html lang="en"
+  body
+    | Hello #{user["nick"]},
+    br
+    p
+      | you have joined indypicdump on #{Time.at(user["time_created"]).strftime("%e.%m.%Y %H:%M")}.
+      br
+      - if email.length == 1
+        | Your have the address #{email.first} assigned to your account.
+      - else
+        | You have the following email addresses assigned to your account:
+        br
+        ul
+          - email.each do |address|
+            li &middot; #{address}
+      br
+      | You do #{user["accept_messages"] ? "" : "not "}accept messages from others.
+    p
+      strong Pictures
+    p
+      - if dump.length == 1
+        - if dump.first["picture_counter"] == 0
+          | No pictures yet. But there could be. In dump "#{dump.first["alias"].undash}".
+        - else
+          | Hail to the Chief of "#{dump.first["alias"].undash}". #{dump.first["picture_counter"]} picture#{dump.first["picture_counter"] > 1 ? "s" : ""}.
+      - else
+        | Dumps and pictures:
+        br
+          ul
+            - dump.each do |d|
+              li &middot; #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+    p
+      | Stay fresh,
+      br
+      | busy bee
