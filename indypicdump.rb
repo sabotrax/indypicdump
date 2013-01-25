@@ -189,7 +189,36 @@ mail.each do |m|
 	      :picture_counter => result2[0][0]
 	    })
 	  end
-	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :picture_counter => picture_counter, :subject => "Your stats")
+	  # find the most common color of the newest picture
+	  approx_color_name = ""
+	  if picture_counter != 0
+	    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id_user = ? ORDER BY id DESC LIMIT 1", [user.id])
+	    picture = IPDPicture.load(result[0][0])
+	    mcc = picture.quantize.first
+	    loc = File.readlines(IPDConfig::PATH + "/data/list_of_colors.txt")
+	    colors = {}
+	    loc.each do |line|
+	      a = line.split(",").map {|l| l.strip.chomp}
+	      colors[a[0]] = a[1]
+	    end
+	    distance = 255 * 3
+	    approx_color = [0, 0, 0]
+	    colors.each_key do |color|
+	      match = color.match(/#(..)(..)(..)/)
+	      c = [match[1].hex, match[2].hex, match[3].hex]
+	      r_dist = (mcc[0].abs2 - c[0].abs2).abs
+	      g_dist = (mcc[1].abs2 - c[1].abs2).abs
+	      b_dist = (mcc[2].abs2 - c[2].abs2).abs
+	      new_distance = Math.sqrt(r_dist + g_dist + b_dist).to_i
+	      if new_distance < distance
+		distance = new_distance
+		approx_color = color
+	      end
+	    end
+	    approx_color_name = colors[approx_color]
+	    approx_color_name[0] =approx_color_name[0].downcase
+	  end
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :picture_counter => picture_counter, :common_color => approx_color_name, :subject => "Your stats")
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
 	end
     end

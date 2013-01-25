@@ -13,7 +13,7 @@ html lang="en"
         br
         ul
           - email.each do |address|
-            li &middot; #{address}
+            li #{address}
       br
       | You do #{user["accept_messages"] ? "" : "not "}accept messages from others.
     p
@@ -29,7 +29,9 @@ html lang="en"
         br
           ul
             - dump.each do |d|
-              li &middot; #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+              li #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+      - unless common_color.empty?
+        | Your newest picture is mostly #{common_color}.
     p
       | Stay fresh,
       br

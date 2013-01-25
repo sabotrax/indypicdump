@@ -201,3 +201,50 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #require 'ipdrequest'
 #request = IPDRequest.new
 #puts request.exists?
+
+# 21
+require 'RMagick'
+require 'sqlite3'
+require 'ipdconfig'
+require 'ipderror'
+require 'ipdpicture'
+
+#result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture")
+#result.each do |row|
+  #image = IPDPicture.load(row[0])
+  #colors = image.quantize
+  #puts colors.inspect
+#end
+
+image = IPDPicture.load("1358882458.4065044.jpg")
+puts image.filename
+cc = image.quantize
+puts "3 MOST COMMON COLORS"
+puts cc.inspect
+
+cl = File.readlines(IPDConfig::PATH + "/data/list_of_colors.txt")
+colors = {}
+cl.each do |line|
+  a = line.split(",").map {|l| l.strip.chomp}
+  colors[a[0]] = a[1]
+end
+#puts colors.inspect
+
+# by rgb
+test = cc.first
+distance = 255 * 3
+approx_color = [0, 0, 0]
+colors.each_key do |color|
+  m = color.match(/#(..)(..)(..)/)
+  c = [m[1].hex, m[2].hex, m[3].hex]
+  r_dist = (test[0].abs2 - c[0].abs2).abs
+  g_dist = (test[1].abs2 - c[1].abs2).abs
+  b_dist = (test[2].abs2 - c[2].abs2).abs
+  new_distance = Math.sqrt(r_dist + g_dist + b_dist).to_i
+  if new_distance < distance
+    puts "#{new_distance}\t#{colors[color]}"
+    distance = new_distance
+    approx_color = color
+  end
+end
+puts colors[approx_color]

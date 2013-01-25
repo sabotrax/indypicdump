@@ -209,4 +209,29 @@ class IPDPicture
     @path = ""
     @dump = ""
   end
+
+  ##############################
+  # returns the most common colors of a picture
+  # as [[r, g, b], ..]
+  def quantize
+    image = Magick::ImageList.new(IPDConfig::PICTURE_DIR + "/" + self.path + "/" + self.filename)
+    colors = []
+    q = image.quantize(3, Magick::RGBColorspace)
+    palette = q.color_histogram.sort {|a, b| b[1] <=> a[1]}
+    (0..2).each do |i|
+      c = palette[i].to_s.split(',').map {|x| x[/\d+/]}
+      c.pop
+      c[0], c[1], c[2] = [c[0], c[1], c[2]].map { |s| 
+	s = s.to_i
+	if s / 255 > 0 # not all ImageMagicks are created equal....
+	  s = s / 255
+	end
+	s
+      }
+      c = c.slice(0..2)
+      colors << c
+    end
+    return colors
+  end
+
 end
