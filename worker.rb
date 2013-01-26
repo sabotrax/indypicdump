@@ -22,6 +22,7 @@ require 'mail'
 require 'slim'
 require 'ipdconfig'
 require 'ipdhelper'
+require 'ipdpicture'
 include Stalker
 
 ##############################
@@ -104,4 +105,16 @@ job 'picture.report_new' do
   if result.any?
     enqueue("email.send", :to => IPDConfig::EMAIL_OPERATOR, :template => :report_new_pictures, :pictures => result, :now => now.to_i, :subject => "New pictures (#{result.size})")
   end
+end
+
+##############################
+job 'picture.quantize' do |args|
+  picture = IPDPicture.load(args["filename"])
+  raise PictureMissing unless picture
+  cc = picture.quantize
+  cc_hex = []
+  cc.each do |color|
+    cc_hex << sprintf("%02X", color[0]) + sprintf("%02X", color[1]) + sprintf("%02X", color[2])
+  end
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture_common_color (id_picture, color) VALUES (?, ?)", [picture.id, cc_hex.join(",")])
 end
