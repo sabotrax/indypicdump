@@ -47,36 +47,6 @@ configure do
 end
 
 ##############################
-Thread.abort_on_exception = true
-Thread.new do
-  class Env
-    attr_accessor :pics
-  end
-  env = Env.new
-  while true do
-    now_t1 = Time.now
-    sleep IPDConfig::REPORT_NEW_TIMER
-    result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now_t1.to_i])
-    if result.any?
-      env.pics = result
-      t = Slim::Template.new(IPDConfig::PATH + "/templates/mail_new_pictures.slim", :pretty => IPDConfig::RENDER_PRETTY)
-      b = t.render(env)
-      mail = Mail.new do
-	from IPDConfig::EMAIL_SELF
-	to IPDConfig::EMAIL_OPERATOR
-	subject "new pictures (#{result.size})"
-	html_part do
-	  content_type "text/html; charset=UTF-8"
-	  body b
-	end
-      end
-      mail.delivery_method :sendmail
-      mail.deliver
-    end
-  end
-end
-
-##############################
 Thread.new do
   while true do
     sleep IPDConfig::CLIENT_TIMEOUT * 3
@@ -94,7 +64,7 @@ Thread.new do
       # TODO
       # better lock clients hash through this operations
       # clients could have been changed somewhere else (by adding new clients)
-      IPDConfig::LOG_HANDLE.info("REMOVED STALE CLIENTS #{s1 - IPDPicture.clients.size}/#{s1}")
+      IPDConfig::LOG_HANDLE.info("REMOVE STALE CLIENTS #{s1 - IPDPicture.clients.size}/#{s1}")
     end
   end
 end

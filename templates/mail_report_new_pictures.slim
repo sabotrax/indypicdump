@@ -1,0 +1,10 @@
+doctype html
+html
+  body
+    p New pictures
+    table
+      - pictures.each do |picture|
+        tr
+          td -#{(now - picture[2]) / 60} min
+          td <a href="http://indypicdump.com/pics/#{picture[1]}/#{picture[0]}">#{picture[3]} @ #{picture[4]}</a>
+          td <a href="http://indypicdump.com/picture/delete/#{picture[0]}">l&ouml;schen</a>

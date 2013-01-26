@@ -320,6 +320,7 @@ triangular
 troubled
 ugly
 uneven
+unhappy
 unripe
 unsightly
 unusual

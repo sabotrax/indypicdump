@@ -27,7 +27,7 @@ include Stalker
 ##############################
 job 'email.send' do |args|
   class Env
-    attr_accessor :from, :nick, :code, :order, :message, :path, :filename, :dump, :address, :user, :email, :picture_counter, :common_color
+    attr_accessor :from, :nick, :code, :order, :message, :path, :filename, :dump, :address, :user, :email, :picture_counter, :common_color, :pictures, :now
   end
   env = Env.new
   env.from = args["from"]
@@ -43,6 +43,8 @@ job 'email.send' do |args|
   env.email = args["email"]
   env.picture_counter = args["picture_counter"]
   env.common_color = args["common_color"]
+  env.pictures = args["pictures"]
+  env.now = args["now"]
   template_file = IPDConfig::TEMPLATE_DIR + "/mail_#{args['template']}.slim"
   template = Slim::Template.new(template_file, :pretty => IPDConfig::RENDER_PRETTY)
   body = template.render(env)
@@ -93,4 +95,13 @@ job 'message.remove_old' do
     raise
   end
   IPDConfig::DB_HANDLE.commit
+end
+
+##############################
+job 'picture.report_new' do
+  now = Time.now
+  result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, p.time_sent, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now.to_i - IPDConfig::REPORT_NEW_TIMER])
+  if result.any?
+    enqueue("email.send", :to => IPDConfig::EMAIL_OPERATOR, :template => :report_new_pictures, :pictures => result, :now => now.to_i, :subject => "New pictures (#{result.size})")
+  end
 end
