@@ -103,6 +103,7 @@ get '/picture/delete/:filename' do
   path = result[0][1]
   # delete
   IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
+  IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [id])
   begin
     File.unlink(IPDConfig::PICTURE_DIR + "/" + path + "/" + filename)
   rescue Exception => e

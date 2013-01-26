@@ -17,6 +17,7 @@
 
 require 'sqlite3'
 require "random/online"
+require 'RMagick'
 
 class IPDPicture
   @random_pool = {}
@@ -216,9 +217,10 @@ class IPDPicture
   def quantize
     image = Magick::ImageList.new(IPDConfig::PICTURE_DIR + "/" + self.path + "/" + self.filename)
     colors = []
-    q = image.quantize(3, Magick::RGBColorspace)
+    # we're looking for the 7 most common colors
+    q = image.quantize(7, Magick::RGBColorspace)
     palette = q.color_histogram.sort {|a, b| b[1] <=> a[1]}
-    (0..2).each do |i|
+    (0..6).each do |i|
       c = palette[i].to_s.split(',').map {|x| x[/\d+/]}
       c.pop
       c[0], c[1], c[2] = [c[0], c[1], c[2]].map { |s| 

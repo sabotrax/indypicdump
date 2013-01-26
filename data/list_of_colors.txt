@@ -865,7 +865,7 @@
 #100C08, Smoky black
 #FFFAFA, Snow
 #CEC8EF, Soap
-#757575, Sonic silver
+#757575, Derfel green
 #9E1316, Spartan Crimson
 #1D2951, Space cadet
 #80755A, Spanish bistre

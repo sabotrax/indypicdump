@@ -407,9 +407,9 @@ end
 ##############################
 # process pics
 
-picstack.each do |pic|
+picstack.each do |picture|
   container = Magick::ImageList.new
-  container.from_blob IO.read(IPDConfig::TMP_DIR + "/" + pic.filename)
+  container.from_blob IO.read(IPDConfig::TMP_DIR + "/" + picture.filename)
   container.each do |img|
     # autoorient
     img.auto_orient!
@@ -421,7 +421,7 @@ picstack.each do |pic|
       # DateTime.to_time applies the local time zone
       # so we subtract the time zone offset from it
       time_taken = DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time
-      pic.time_taken = time_taken.to_i - time_taken.gmt_offset
+      picture.time_taken = time_taken.to_i - time_taken.gmt_offset
     end
     # resize
     if img.columns >= img.rows and img.columns > IPDConfig::PICTURE_MAX_HORZ_SIZE
@@ -430,26 +430,28 @@ picstack.each do |pic|
       resize = IPDConfig::PICTURE_MAX_VERT_SIZE
     end
     img.resize_to_fit!(resize) if resize
-    break unless pic.filename =~ /\.gif$/i
+    break unless picture.filename =~ /\.gif$/i
   end
   begin
-    unless Dir.exists?(IPDConfig::PICTURE_DIR + "/" + pic.path)
-      Dir.mkdir(IPDConfig::PICTURE_DIR + "/" + pic.path)
-      IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{pic.path}")
+    unless Dir.exists?(IPDConfig::PICTURE_DIR + "/" + picture.path)
+      Dir.mkdir(IPDConfig::PICTURE_DIR + "/" + picture.path)
+      IPDConfig::LOG_HANDLE.info("NEW DAY DIR #{picture.path}")
     end
-    File.open(IPDConfig::PICTURE_DIR + "/" + pic.path + "/" + pic.filename, 'wb') { |f| f.write container.to_blob }
+    File.open(IPDConfig::PICTURE_DIR + "/" + picture.path + "/" + picture.filename, 'wb') { |f| f.write container.to_blob }
   rescue Exception => e
-    IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    IPDConfig::LOG_HANDLE.fatal("FILE COPY ERROR #{picture.filename} / #{e.message} / #{e.backtrace.shift}")
     raise
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [pic.filename, pic.time_taken, pic.time_sent, pic.id_user, pic.original_hash, pic.id_dump, pic.path])
+  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [picture.filename, picture.time_taken, picture.time_sent, picture.id_user, picture.original_hash, picture.id_dump, picture.path])
+  # quantize
+  Stalker.enqueue("picture.quantize", :filename => picture.filename)
   # delete tmp files 
   begin
-    File.unlink(IPDConfig::TMP_DIR + "/" + pic.filename)
+    File.unlink(IPDConfig::TMP_DIR + "/" + picture.filename)
   rescue Exception => e
-    IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{pic.filename} / #{e.message} / #{e.backtrace.shift}")
+    IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{picture.filename} / #{e.message} / #{e.backtrace.shift}")
     raise
   end
-  IPDConfig::LOG_HANDLE.info("ADD PICTURE #{pic.filename} DUMP #{pic.id_dump}")
+  IPDConfig::LOG_HANDLE.info("ADD PICTURE #{picture.filename} DUMP #{picture.id_dump}")
 end
