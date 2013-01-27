@@ -196,6 +196,25 @@ class IPDPicture
     return result[0][0]
   end
 
+  ##############################
+  def self.delete(p)
+    raise ArgumentError unless p.to_s =~ /^[1-9]\d*$/
+    begin
+      IPDConfig::DB_HANDLE.transaction
+      result = IPDConfig::DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [p])
+      raise PictureMissing, "PICTURE NOT IN DB" unless result.any?
+      IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [p])
+      IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [p])
+      File.unlink(IPDConfig::PICTURE_DIR + "/" + result[0][0] + "/" + result[0][1])
+    rescue Exception => e
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("PICTURE DELETE ERROR ID #{p} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    IPDConfig::DB_HANDLE.commit
+  end
+
+  ##############################
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump
 
   ##############################

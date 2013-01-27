@@ -250,9 +250,15 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #puts colors[approx_color]
 
 # 22
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipdpicture'
+#require 'stalker'
+#picture = IPDPicture.load("1357641802.2345421.jpg")
+#Stalker.enqueue("picture.quantize", :filename => picture.filename)
+
+# 23
 require 'ipdconfig'
 require 'ipderror'
 require 'ipdpicture'
-require 'stalker'
-picture = IPDPicture.load("1357641802.2345421.jpg")
-Stalker.enqueue("picture.quantize", :filename => picture.filename)
+IPDPicture.delete(119)

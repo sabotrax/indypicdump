@@ -89,28 +89,25 @@ end
 get '/picture/delete/:filename' do
   protected!
   # check params
-  if params.has_key?("filename")
-    filename = params[:filename]
-    return "FILENAME ERROR" if filename !~ /^\d+\.(\d+\.)?[A-Za-z]{3,4}$/
-  else
-    return "PARAMETER ERROR"
+  unless params[:filename] =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
+    @msg = "Something went wrong:<br /><p>Argument error.</p>"
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
   # check if picture exists
-  result = []
-  result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [filename])
-  return "FILE NOT FOUND ERROR" if result.empty?
-  id = result[0][0]
-  path = result[0][1]
-  # delete
-  IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
-  IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [id])
-  begin
-    File.unlink(IPDConfig::PICTURE_DIR + "/" + path + "/" + filename)
-  rescue Exception => e
-    IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{filename} / #{e.message} / #{e.backtrace.shift}")
+  result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE filename = ?", [params[:filename]])
+  if result.empty?
+    @msg = "Something went wrong:<br /><p>Picture is missing.</p>"
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
-  IPDConfig::LOG_HANDLE.info("DELETE PICTURE #{filename} / #{request.ip} / #{request.user_agent}")
-  return "DONE"
+  begin
+    IPDPicture.delete(result[0][0])
+  rescue Exception => e
+      @msg = "Something went wrong:<br /><p>#{e.message}</p>"
+      halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  IPDConfig::LOG_HANDLE.info("DELETE PICTURE ID #{result[0][0]} / #{request.ip} / #{request.user_agent}")
+  @msg = "Picture deleted."
+  halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
 end
 
 ##############################
