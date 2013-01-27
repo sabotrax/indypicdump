@@ -58,6 +58,7 @@ module IPDConfig
   REPORT_NEW_TIMER = 3600
   PICTURE_MAX_HORZ_SIZE = 800
   PICTURE_MAX_VERT_SIZE = 600
+  COLORS = PATH + '/data/colors.txt'
 
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'

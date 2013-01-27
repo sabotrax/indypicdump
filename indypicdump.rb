@@ -195,7 +195,7 @@ mail.each do |m|
 	    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id_user = ? ORDER BY id DESC LIMIT 1", [user.id])
 	    picture = IPDPicture.load(result[0][0])
 	    mcc = picture.quantize.first
-	    loc = File.readlines(IPDConfig::PATH + "/data/list_of_colors.txt")
+	    loc = File.readlines(IPDConfig::COLORS)
 	    colors = {}
 	    loc.each do |line|
 	      a = line.split(",").map {|l| l.strip.chomp}
