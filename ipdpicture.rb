@@ -255,4 +255,40 @@ class IPDPicture
     return colors
   end
 
+  ##############################
+  # returns
+  # [] of the approximated names of the most common colors of the picture
+  def approx_common_color
+    result = IPDConfig::DB_HANDLE.execute("SELECT color FROM picture_common_color WHERE id_picture = ?", [self.id])
+    mcc = result[0][0].split(",")
+    raise PictureCommonColorMissing if mcc.empty?
+    loc = File.readlines(IPDConfig::COLORS)
+    colors = {}
+    loc.each do |line|
+      a = line.split(",").map {|l| l.strip.chomp}
+      colors[a[0]] = a[1]
+    end
+    approx_color_name = []
+    mcc.each do |cc|
+      m = cc.match(/(..)(..)(..)/)
+      cc = [m[1].hex, m[2].hex, m[3].hex]
+      distance = 255 * 3
+      approx_color = "#000000"
+      colors.each_key do |color|
+	m = color.match(/#(..)(..)(..)/)
+	c = [m[1].hex, m[2].hex, m[3].hex]
+	r_dist = (cc[0].abs2 - c[0].abs2).abs
+	g_dist = (cc[1].abs2 - c[1].abs2).abs
+	b_dist = (cc[2].abs2 - c[2].abs2).abs
+	new_distance = Math.sqrt(r_dist + g_dist + b_dist).to_i
+	if new_distance < distance
+	  distance = new_distance
+	  approx_color = color
+	end
+      end
+      approx_color_name << colors[approx_color]
+    end
+    return approx_color_name
+  end
+
 end

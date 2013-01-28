@@ -24,10 +24,10 @@ class IPDTest
     end
     mail = Mail.new do
       from	"root@indypicdump.com"
-      to	"foo@indypicdump.com"
-      subject	"some"
+      to	"me@indypicdump.com"
+      subject	"stats please"
       #add_file 	"test/farben_test.jpg"
-      add_file 	"test/summer_test.jpg"
+      #add_file 	"test/summer_test.jpg"
       #add_file 	"test/beach_test.jpg"
       #add_file 	"test/snowboard_animated_test.gif"
       #add_file 	"test/static_test.gif"

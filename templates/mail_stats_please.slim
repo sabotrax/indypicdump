@@ -23,15 +23,22 @@ html lang="en"
         - if dump.first["picture_counter"] == 0
           | No pictures yet. But there could be. In dump "#{dump.first["alias"].undash}".
         - else
-          | Hail to the Chief of "#{dump.first["alias"].undash}". #{dump.first["picture_counter"]} picture#{dump.first["picture_counter"] > 1 ? "s" : ""}.
+          | You are posting in "#{dump.first["alias"].undash}". #{dump.first["picture_counter"]} picture#{dump.first["picture_counter"] > 1 ? "s" : ""}.
       - else
         | Dumps and pictures:
         br
-          ul
-            - dump.each do |d|
-              li #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+        ul
+          - active_dumps = 0
+          - dump.each do |d|
+            - if d["picture_counter"] > 0
+              - active_dumps += 1
+            li #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+        - if active_dumps > 1
+          br
+          | #{picture_counter} pictures overall.
       - unless common_color.empty?
-        | Your newest picture is mostly #{common_color}.
+        br
+        | Your newest picture is mostly #{common_color.join(" and ")}.
     p
       | Stay fresh,
       br
