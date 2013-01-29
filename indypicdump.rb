@@ -83,7 +83,7 @@ mail.each do |m|
 	if IPDUser.exists?(nick)
 	  # check duplicate requests and ignore
 	  request = IPDRequest.new
-	  request.action = ["i am", nick, m.from[0]].join(",")
+	  request.action = ["i am", "confirm owner", nick, m.from[0]].join(",")
 	  next if request.exists?
 	  # check if requesting email address is already bound to this username
 	  user = IPDUser.load(nick)
@@ -97,9 +97,9 @@ mail.each do |m|
 	    Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_some_is, :from => m.from[0], :nick => nick, :subject => "Notice")
 	    next
 	  end
-	  # send request to owner of username
 	  request.save
-	  Stalker.enqueue("email.send", :to => user.email.first, :template => :i_am_request_code, :code => request.code, :from => m.from[0], :nick => nick, :subject => "Request to add email address")
+	  # send request to owner of username
+	  Stalker.enqueue("email.send", :to => user.email.first, :template => :i_am_confirm_owner, :code => request.code, :from => m.from[0], :nick => nick, :subject => "Request to add email address")
 	# send notification of non-existing user
 	else
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :i_am_no_user, :from => m.from[0], :nick => nick, :subject => "Notice")
@@ -226,12 +226,22 @@ mail.each do |m|
 	  case action[0].downcase
 	    # i am
 	    when "i am"
+	      # create confirmation request for requestor
+	      if action[1] == "confirm owner"
+		IPDRequest.remove_by_action(result[0][0])
+		request = IPDRequest.new
+		request.action = ["i am", "confirm requestor", action.slice(2,2)].join(",")
+		request.save
+		action = request.action.split(",")
+		Stalker.enqueue("email.send", :to => action[3], :template => :i_am_confirm_requestor, :code => request.code, :from => action[3], :subject => "Request to add email address")
 	      # add address to requesting user
-	      user = IPDUser.load(action[1])
-	      user.email = action[2]
-	      user.save
-	      IPDRequest.remove_by_action(result[0][0])
-	      IPDConfig::LOG_HANDLE.info("USER REQUEST BOUND ADDRESS TO USER #{action[2]} -> #{action[1]}")
+	      elsif action[1] == "confirm requestor"
+		user = IPDUser.load(action[2])
+		user.email = action[3]
+		user.save
+		IPDRequest.remove_by_action(result[0][0])
+		IPDConfig::LOG_HANDLE.info("USER REQUEST BOUND ADDRESS TO USER #{action[3]} -> #{action[2]}")
+	      end
 	      next
 	    # accept/decline messages
 	    when /(accept|decline) messages/

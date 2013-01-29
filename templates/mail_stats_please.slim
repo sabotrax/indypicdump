@@ -10,7 +10,6 @@ html lang="en"
         | Your have the address #{email.first} assigned to your account.
       - else
         | You have the following email addresses assigned to your account:
-        br
         ul
           - email.each do |address|
             li #{address}
@@ -26,7 +25,6 @@ html lang="en"
           | You are posting in "#{dump.first["alias"].undash}". #{dump.first["picture_counter"]} picture#{dump.first["picture_counter"] > 1 ? "s" : ""}.
       - else
         | Dumps and pictures:
-        br
         ul
           - active_dumps = 0
           - dump.each do |d|
@@ -34,7 +32,6 @@ html lang="en"
               - active_dumps += 1
             li #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
         - if active_dumps > 1
-          br
           | #{picture_counter} pictures overall.
       - unless common_color.empty?
         br

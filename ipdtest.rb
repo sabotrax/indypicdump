@@ -23,9 +23,9 @@ class IPDTest
       delivery_method :test
     end
     mail = Mail.new do
-      from	"root@indypicdump.com"
+      from	"somesome@indypicdump.com"
       to	"me@indypicdump.com"
-      subject	"stats please"
+      subject	"i am poised apple"
       #add_file 	"test/farben_test.jpg"
       #add_file 	"test/summer_test.jpg"
       #add_file 	"test/beach_test.jpg"
