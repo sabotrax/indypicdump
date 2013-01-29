@@ -19,20 +19,25 @@ html lang="en"
       strong Pictures
     p
       - if dump.length == 1
-        - if dump.first["picture_counter"] == 0
+        - if dump.first["pictures"] == 0
           | No pictures yet. But there could be. In dump "#{dump.first["alias"].undash}".
         - else
-          | You are posting in "#{dump.first["alias"].undash}". #{dump.first["picture_counter"]} picture#{dump.first["picture_counter"] > 1 ? "s" : ""}.
+          | You are posting in "#{dump.first["alias"].undash}". #{dump.first["pictures"]} picture#{dump.first["pictures"] > 1 ? "s" : ""}#{dump.first["members"] > 1 ? " (" + dump.first["percent"].to_s + "%)." : "."}
+          - if dump.first["members"] > 1
+            br
+            | This is the #{dump.first["ranking"]}th place in the ranking of #{dump.first["members"]} members.
       - else
-        | Dumps and pictures:
+        | Dumps pictures and members:
         ul
           - active_dumps = 0
           - dump.each do |d|
-            - if d["picture_counter"] > 0
+            - if d["pictures"] > 0
               - active_dumps += 1
-            li #{d["alias"].undash} #{d["picture_counter"] == 0 ? "/" : d["picture_counter"]}
+            - if d["pictures"] > 0 and d["members"] > 1
+              - ranking = "#{d["ranking"]}th place of #{d["members"]}."
+            li #{d["pictures"] == 0 ? "nothing" : d["pictures"]}#{d["pictures"] > 0 ? " picture" : ""}#{d["pictures"] > 1 ? "s" : ""} #{d["pictures"] > 0 ? "(" + d["percent"].to_s + "%) " : ""}in "#{d["alias"].undash}". #{ranking}
         - if active_dumps > 1
-          | #{picture_counter} pictures overall.
+          | #{pictures} pictures overall.
       - unless common_color.empty?
         br
         | Your newest picture is mostly #{common_color.join(" and ")}.

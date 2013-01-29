@@ -25,7 +25,7 @@ class IPDTest
     mail = Mail.new do
       from	"somesome@indypicdump.com"
       to	"me@indypicdump.com"
-      subject	"i am poised apple"
+      subject	"stats please"
       #add_file 	"test/farben_test.jpg"
       #add_file 	"test/summer_test.jpg"
       #add_file 	"test/beach_test.jpg"

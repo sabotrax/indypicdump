@@ -61,8 +61,8 @@ unless test
 end
 
 unless test
-  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -181,18 +181,37 @@ mail.each do |m|
 	  email_list = user.email
 	  result = IPDConfig::DB_HANDLE.execute("SELECT d.id, d.alias FROM dump d JOIN mapping_dump_user m ON d.id = m.id_dump WHERE m.id_user= ? ORDER BY d.alias ASC", [user.id])
 	  dump_list = []
-	  picture_counter = 0
+	  pictures = 0
+	  percent = 0
 	  result.each do |row|
-	    result2 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE id_user = ? AND id_dump = ?", [user.id, row[0]])
-	    picture_counter += result2[0][0]
+	    # no. of pics of user
+	    result2 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{row[0]}\" WHERE id_user = ?", [user.id])
+	    # no. of all pics
+	    result3 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{row[0]}\"")
+	    if result2[0][0] > 0
+	      pictures += result2[0][0]
+	      percent = (result2[0][0].to_f / result3[0][0].to_f * 100).round(2)
+	    end
+	    # member ranking
+	    result4 = IPDConfig::DB_HANDLE.execute("SELECT id_user, count(1) posts FROM \"#{row[0]}\" GROUP BY id_user ORDER BY posts DESC, id_user ASC")
+	    # no. of members
+	    result5 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) from mapping_dump_user WHERE id_dump = ?", [row[0]])
+	    ranking = 0
+	    result4.each do |row2|
+	      ranking += 1
+	      break if user.id == row2[0][0]
+	    end
 	    dump_list.push({
 	      :alias => row[1],
-	      :picture_counter => result2[0][0]
+	      :pictures => result2[0][0],
+	      :percent => percent,
+	      :ranking => ranking,
+	      :members => result5[0][0],
 	    })
 	  end
 	  # find the most common color of the newest picture
 	  acc = []
-	  if picture_counter != 0
+	  if pictures != 0
 	    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id_user = ? ORDER BY id DESC LIMIT 1", [user.id])
 	    picture = IPDPicture.load(result[0][0])
 	    begin
@@ -201,7 +220,7 @@ mail.each do |m|
 	      IPDConfig::LOG_HANDLE.error("COMMON COLOR MISSING ERROR ID #{picture.id}")
 	    end
 	  end
-	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :picture_counter => picture_counter, :common_color => acc, :subject => "Your stats")
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :pictures => pictures, :common_color => acc, :subject => "Your stats")
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
 	end
     end
