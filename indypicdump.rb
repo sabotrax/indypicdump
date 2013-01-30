@@ -194,19 +194,17 @@ mail.each do |m|
 	    end
 	    # member ranking
 	    result4 = IPDConfig::DB_HANDLE.execute("SELECT id_user, count(1) posts FROM \"#{row[0]}\" GROUP BY id_user ORDER BY posts DESC, id_user ASC")
-	    # no. of members
-	    result5 = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) from mapping_dump_user WHERE id_dump = ?", [row[0]])
 	    ranking = 0
 	    result4.each do |row2|
 	      ranking += 1
-	      break if user.id == row2[0][0]
+	      break if user.id == row2[0]
 	    end
 	    dump_list.push({
 	      :alias => row[1],
 	      :pictures => result2[0][0],
 	      :percent => percent,
 	      :ranking => ranking,
-	      :members => result5[0][0],
+	      :members => result4.size,
 	    })
 	  end
 	  # find the most common color of the newest picture
