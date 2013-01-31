@@ -61,8 +61,8 @@ unless test
 end
 
 unless test
-  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -326,17 +326,24 @@ mail.each do |m|
     next
   end
 
+  if m.subject =~ /\bgroup\b/i
+    group = true
+  else
+    group = false
+  end
+  noof_pictures = 0
   m.attachments.each do | attachment |
 
     ##############################
     # extract picture attachments
     if (attachment.content_type.start_with?('image/'))
+      noof_pictures += 1 if group
       # load user
       # CAUTION
       # "downcase" only works in the ASCII region
       email = m.from[0].downcase
       user = IPDUser.load(email)
-      next unless user
+      break unless user
       # drop pictures smaller than IPDConfig::PICTURE_MIN_SIZE
       img = Magick::Image::from_blob(attachment.body.decoded)[0]
       if img.columns >= img.rows and img.columns < IPDConfig::PICTURE_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PICTURE_MIN_SIZE
@@ -346,7 +353,7 @@ mail.each do |m|
 	msg.id_user = user.id
 	msg.save
 	IPDConfig::LOG_HANDLE.info("PICTURE TOO SMALL FROM #{user.nick} SIZE #{img.columns}x#{img.rows}")
-	next
+	break
       end
       # check for existing dump
       unless IPDDump.exists?(m.to[0].to_s)
@@ -358,7 +365,7 @@ mail.each do |m|
 	unknown_dump = m.to[0].to_s.downcase
 	unknown_dump.sub!(/@.+$/, "")
 	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{user.nick}")
-	next
+	break
       end
       # check if user is member of dump
       dump = IPDDump.load(IPDDump.id_dump(m.to[0].to_s))
@@ -369,14 +376,16 @@ mail.each do |m|
 	msg.id_user = user.id
 	msg.save
 	IPDConfig::LOG_HANDLE.info("FORBIDDEN DUMP #{dump.alias} FROM #{user.nick}")
-	next
+	break
       end
       # check for duplicate pictures
       # TODO
       # better use dump.has_picture?
-      pic_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
+      picture_hash = Digest::RMD160::hexdigest(attachment.body.encoded)
+      # TODO
+      # can #id_dump be removed?
       #id_dump = IPDDump.id_dump(m.to[0].to_s)
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{dump.id}\" WHERE original_hash = ?", [pic_hash])
+      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{dump.id}\" WHERE original_hash = ?", [picture_hash])
       if result.any?
 	msg = IPDMessage.new
 	msg.message_id = IPDConfig::MSG_DUPLICATE_PICTURE
@@ -384,39 +393,52 @@ mail.each do |m|
 	msg.id_user = user.id
 	msg.save
 	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user.nick} ORIGINAL ID #{result[0][0]} DUMP #{dump.alias}")
-	# CAUTION
-	# we allow duplicates in test mode
-	#next unless test
-	next
+	break
       end
 
-      IPDConfig::LOG_HANDLE.info("SENDER #{email}")
+      if group
+	IPDConfig::LOG_HANDLE.info("SENDER #{email}") if noof_pictures == 1
+      else
+	IPDConfig::LOG_HANDLE.info("SENDER #{email}")
+      end
       # generate unique filename
       now = Time.now
       filename = now.to_f.to_s + File.extname(attachment.filename)
       path = Time.new(now.year, now.month, now.day).to_i.to_s
-      pic = IPDPicture.new
-      pic.filename = filename
-      pic.time_sent = m.date.to_time.to_i
-      pic.id_user = user.id
-      pic.original_hash = pic_hash
-      pic.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.exists?(m.to[0].to_s)
-      pic.path = path
-      picstack.push(pic)
+      picture = IPDPicture.new
+      # NOTE
+      # we use #id as "is part of group tag"
+      picture.id = noof_pictures if group
+      picture.filename = filename
+      picture.time_sent = m.date.to_time.to_i
+      picture.id_user = user.id
+      picture.original_hash = picture_hash
+      picture.id_dump = IPDDump.id_dump(m.to[0].to_s) if IPDDump.exists?(m.to[0].to_s)
+      picture.path = path
+      picstack.push(picture)
       begin
 	File.open(IPDConfig::TMP_DIR + "/" + filename, "w+b", 0644) {|f| f.write attachment.body.decoded}
       rescue Exception => e
 	IPDConfig::LOG_HANDLE.fatal("FILE SAVE ERROR #{user.email.to_s} / #{attachment.filename} / #{filename} / #{e.message} / #{e.backtrace.shift}")
       end
     end
-    # only one pic per mail
-    break
+    # 3 pictures are OK in "group" mails
+    if group
+      break if noof_pictures == 3
+    # 1 otherwise
+    else
+      break
+    end
+  end
+  if group and noof_pictures < 3
+    noof_pictures.times { picstack.pop }
   end
 end
-
+ 
 ##############################
-# process pics
+# process pictures
 
+groupstack = []
 picstack.each do |picture|
   container = Magick::ImageList.new
   container.from_blob IO.read(IPDConfig::TMP_DIR + "/" + picture.filename)
@@ -453,7 +475,14 @@ picstack.each do |picture|
     raise
   end
   # seems ok, so insert into db
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path) VALUES (?, ?, ?, ?, ?, ?, ?)", [picture.filename, picture.time_taken, picture.time_sent, picture.id_user, picture.original_hash, picture.id_dump, picture.path])
+  if picture.id != 0
+    groupstack << picture
+    # remove fake id (see above)
+    picture.id = 0
+  end
+  picture.save
+  # TODO
+  # change quantize to use id
   # quantize
   Stalker.enqueue("picture.quantize", :filename => picture.filename)
   # delete tmp files 
@@ -463,5 +492,19 @@ picstack.each do |picture|
     IPDConfig::LOG_HANDLE.fatal("FILE DELETE ERROR #{picture.filename} / #{e.message} / #{e.backtrace.shift}")
     raise
   end
+  IPDConfig::LOG_HANDLE.info("NEW GROUP") if groupstack.size == 1
   IPDConfig::LOG_HANDLE.info("ADD PICTURE #{picture.filename} DUMP #{picture.id_dump}")
+end
+
+# build group relationship
+i = 0
+while i < groupstack.size
+  groupstack[i].successor = groupstack[i + 1].id
+  groupstack[i].save
+  groupstack[i + 1].precursor = groupstack[i].id
+  groupstack[i + 1].successor = groupstack[i + 2].id
+  groupstack[i + 1].save
+  groupstack[i + 2].precursor = groupstack[i + 1].id
+  groupstack[i + 2].save
+  i += 3
 end
