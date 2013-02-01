@@ -119,11 +119,11 @@ get '/picture/show/user/:nick' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM \"#{id_dump}\" p JOIN user u ON p.id_user = u.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM picture p JOIN user u ON p.id_user = u.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
-	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING ID #{random_id} DUMP #{id_dump}")
 	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
@@ -413,11 +413,11 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM \"#{id_dump}\" p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id ORDER BY p.id ASC LIMIT ?, 1", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
-	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING OFFSET #{random_id} DUMP #{id_dump}")
+	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING ID #{random_id} DUMP #{id_dump}")
 	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")

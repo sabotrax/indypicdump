@@ -30,9 +30,11 @@ class IPDPicture
 
   ##############################
   def self.get_weighted_random_id(request)
+  #def self.get_weighted_random_id(d)
     require "ipdtest"
 
     id_dump = IPDDump.dump[request.dump] || request.dump
+    #id_dump = d
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
       IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
@@ -57,7 +59,7 @@ class IPDPicture
 	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
 	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
-      
+
       #puts IPDTest.random_distribution(1000, randnum)
 
       # show newer pics more often
@@ -68,7 +70,7 @@ class IPDPicture
 	offset = row[0]
 	# create random positions for later injection
 	weighted = []
-	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD)).each do
+	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD).to_i).each do
 	  weighted.push(rand(randnum.length))
 	end
 	# merge
@@ -78,7 +80,38 @@ class IPDPicture
       end
       #puts IPDTest.random_distribution(1000, randnum)
 
-      @random_pool[id_dump] = randnum
+      # NOTE
+      # here we translate random numbers to picture ids
+      # remove some groups (as they would be to dominant)
+      # and complete the rest
+      remove_groups = (IPDConfig::GEN_RANDOM_IDS * IPDConfig::GROUP_NEGATIVE_DISPLAY_MOD).to_i
+      step = IPDConfig::GEN_RANDOM_IDS / remove_groups
+      # random ids with group pictures
+      randid = []
+      i = 0
+      removed = 0
+      randnum.each do |n|
+	result = IPDConfig::DB_HANDLE.execute("SELECT id, successor FROM \"#{id_dump}\" LIMIT ?, 1", [n])
+	if result[0][1] != 0 and i >= removed * step
+	  if removed < remove_groups
+	    removed += 1
+	    i += 1
+	    next
+	  end
+	end
+	i += 1
+	randid << result[0][0]
+	# get second and third picture of group
+	if result[0][1] != 0
+	  randid << result[0][1]
+	  result2 = IPDConfig::DB_HANDLE.execute("SELECT successor FROM picture WHERE id = ?", result[0][1])
+	  randid << result2[0][0]
+	  # TODO
+	  # raise error unless group is complete
+	end
+      end
+
+      @random_pool[id_dump] = randid
     end
     @random_pool[id_dump].shift
   end
