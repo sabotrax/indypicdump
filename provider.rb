@@ -119,7 +119,7 @@ get '/picture/show/user/:nick' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages FROM picture p JOIN user u ON p.id_user = u.id WHERE p.id = ?", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages FROM picture p JOIN user u ON p.id_user = u.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -147,10 +147,12 @@ get '/picture/show/user/:nick' do
     @picture.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
-    @user.nick = rnd_picture[0][6]
-    @user.accept_external_messages = rnd_picture[0][7]
+    @user.nick = rnd_picture[0][8]
+    @user.accept_external_messages = rnd_picture[0][9]
     @picture.path = rnd_picture[0][5]
     @picture.dump = "ud"
+    @picture.precursor = rnd_picture[0][6]
+    @picture.successor = rnd_picture[0][7]
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else
@@ -413,7 +415,7 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, u.nick, u.accept_external_messages, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
@@ -441,10 +443,12 @@ get '/*' do
     @picture.time_sent = rnd_picture[0][3]
     @user = IPDUser.new
     @user.id = rnd_picture[0][4]
-    @user.nick = rnd_picture[0][6]
-    @user.accept_external_messages = rnd_picture[0][7]
+    @user.nick = rnd_picture[0][8]
+    @user.accept_external_messages = rnd_picture[0][9]
     @picture.path = rnd_picture[0][5]
-    @picture.dump = rnd_picture[0][8]
+    @picture.dump = rnd_picture[0][10]
+    @picture.precursor = rnd_picture[0][6]
+    @picture.successor = rnd_picture[0][7]
 
     slim :dump, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
   else

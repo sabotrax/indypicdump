@@ -144,12 +144,22 @@ class IPDPicture
       # find non-sequential id
       while true do
 	random_id = self.get_weighted_random_id(request)
+	# TODO
+	# this is expensive
+	# better add precursor earlier by making "random_id" a hash
+	result = IPDConfig::DB_HANDLE.execute("SELECT id, precursor FROM picture WHERE id = ?", [random_id])
 	if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
+	  # skip pictures with precursors
+	  if result[0][1] == @clients[key][id_dump][:last_skipped]
+	    @clients[key][id_dump][:last_skipped] = result[0][0]
+	    next
+	  end
 	  if @clients[key][id_dump][:ids].include?(random_id)
 	    if i == IPDConfig::NOSHOW_LAST_IDS - 1
 	      raise BadLuck, "BAD LUCK RANDOM ID WARNING DUMP #{id_dump}"
 	    else
 	      i += 1
+	      @clients[key][id_dump][:last_skipped] = random_id
 	      next
 	    end
 	  end
@@ -161,6 +171,7 @@ class IPDPicture
 	    @clients[key][id_dump] = {
 	      :time_created => now,
 	      :ids => [],
+	      :last_skipped => 0
 	    }
 	  end
 	end

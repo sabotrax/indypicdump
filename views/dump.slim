@@ -50,7 +50,11 @@ html lang="en"
         - mt = "!"
       | * #{tt} &#9993; #{ts} by <a href="/user/show/#{@user.nick.dash}" id="landing">#{@user.nick}#{mt}</a>
       br
-      <img src="/pics/#{@picture.path}/#{@picture.filename}" id="image" name="image"><br />
+      <img src="/pics/#{@picture.path}/#{@picture.filename}"><br />
+      - if @picture.precursor != 0 or @picture.successor != 0
+        | part of group
+        - if @user.accept_external_messages?
+          | &nbsp;|&nbsp;
       - if @user.accept_external_messages?
         | <a href="/picture/contact/#{@user.nick.dash}/about/#{@picture.filename}/in/#{@picture.dump}" id="landing">contact user</a>
         br
