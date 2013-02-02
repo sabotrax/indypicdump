@@ -212,7 +212,9 @@ class IPDPicture
       picture.original_hash = result[0][5]
       picture.id_dump = result[0][6]
       picture.path = result[0][7]
-      picture.dump = result[0][8]
+      picture.precursor = result[0][8]
+      picture.successor = result[0][9]
+      picture.dump = result[0][10]
     end
     return picture
   end
