@@ -348,34 +348,46 @@ mail.each do |m|
       img = Magick::Image::from_blob(attachment.body.decoded)[0]
       if img.columns >= img.rows and img.columns < IPDConfig::PICTURE_MIN_SIZE or img.rows >= img.columns and img.rows < IPDConfig::PICTURE_MIN_SIZE
 	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
+	if group
+	  msg.message_id = IPDConfig::MSG_GROUP_PIC_TOO_SMALL
+	else
+	  msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
+	end
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
-	IPDConfig::LOG_HANDLE.info("PICTURE TOO SMALL FROM #{user.nick} SIZE #{img.columns}x#{img.rows}")
+	IPDConfig::LOG_HANDLE.info("PICTURE #{group ? "(IN GROUP) " : ""}TOO SMALL FROM #{user.nick} SIZE #{img.columns}x#{img.rows}")
 	break
       end
       # check for existing dump
       unless IPDDump.exists?(m.to[0].to_s)
 	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
+	if group
+	  msg.message_id = IPDConfig::MSG_GROUP_UNKNOWN_DUMP
+	else
+	  msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
+	end
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
 	unknown_dump = m.to[0].to_s.downcase
 	unknown_dump.sub!(/@.+$/, "")
-	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{unknown_dump} FROM #{user.nick}")
+	IPDConfig::LOG_HANDLE.info("UNKNOWN DUMP #{group ? "(IN GROUP) " : ""}#{unknown_dump} FROM #{user.nick}")
 	break
       end
       # check if user is member of dump
       dump = IPDDump.load(IPDDump.id_dump(m.to[0].to_s))
       unless dump.has_user?(user.id)
 	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_NO_DUMP_MEMBER
+	if group
+	  msg.message_id = IPDConfig::MSG_GROUP_NO_DUMP_MEMBER
+	else
+	  msg.message_id = IPDConfig::MSG_NO_DUMP_MEMBER
+	end
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
-	IPDConfig::LOG_HANDLE.info("FORBIDDEN DUMP #{dump.alias} FROM #{user.nick}")
+	IPDConfig::LOG_HANDLE.info("FORBIDDEN DUMP #{group ? "(IN GROUP) " : ""}#{dump.alias} FROM #{user.nick}")
 	break
       end
       # check for duplicate pictures
@@ -388,11 +400,15 @@ mail.each do |m|
       result = IPDConfig::DB_HANDLE.execute("SELECT id FROM \"#{dump.id}\" WHERE original_hash = ?", [picture_hash])
       if result.any?
 	msg = IPDMessage.new
-	msg.message_id = IPDConfig::MSG_DUPLICATE_PICTURE
+	if group
+	  msg.message_id = IPDConfig::MSG_GROUP_DUPLICATE_PICTURE
+	else
+	  msg.message_id = IPDConfig::MSG_DUPLICATE_PICTURE
+	end
 	msg.time_created = m.date.to_time.to_i
 	msg.id_user = user.id
 	msg.save
-	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE FROM #{user.nick} ORIGINAL ID #{result[0][0]} DUMP #{dump.alias}")
+	IPDConfig::LOG_HANDLE.info("DUPLICATE PICTURE #{group ? "(IN GROUP) " : ""}FROM #{user.nick} ORIGINAL ID #{result[0][0]} DUMP #{dump.alias}")
 	break
       end
 

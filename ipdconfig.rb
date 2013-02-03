@@ -76,12 +76,20 @@ module IPDConfig
     1 => "You sent a duplicate picture",
     2 => "You posted to an unknown dump",
     3 => "The picture you sent was too small",
-    4 => "You are no member of this dump"
+    4 => "You are no member of this dump",
+    5 => "You sent a duplicate picture (in group)",
+    6 => "You posted to an unknown dump (in group)",
+    7 => "The picture you sent was too small (in group)",
+    8 => "You are no member of this dump (in group)",
   }
   MSG_DUPLICATE_PICTURE = 1
   MSG_UNKNOWN_DUMP = 2
   MSG_PIC_TOO_SMALL = 3
   MSG_NO_DUMP_MEMBER = 4
+  MSG_GROUP_DUPLICATE_PICTURE = 5
+  MSG_GROUP_UNKNOWN_DUMP = 6
+  MSG_GROUP_PIC_TOO_SMALL = 7
+  MSG_GROUP_NO_DUMP_MEMBER = 8
 
   # Dump
   # list of names dumps may not have
