@@ -101,7 +101,7 @@ end
 ##############################
 job 'picture.report_new' do
   now = Time.now
-  result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, p.time_sent, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now.to_i - IPDConfig::REPORT_NEW_TIMER])
+  result = IPDConfig::DB_HANDLE.execute("SELECT p.filename, p.path, p.time_sent, p.precursor, p.successor, u.nick, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.time_sent >= ? ORDER BY p.id asc", [now.to_i - IPDConfig::REPORT_NEW_TIMER])
   if result.any?
     enqueue("email.send", :to => IPDConfig::EMAIL_OPERATOR, :template => :report_new_pictures, :pictures => result, :now => now.to_i, :subject => "New pictures (#{result.size})")
   end

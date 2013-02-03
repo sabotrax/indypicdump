@@ -258,12 +258,14 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #Stalker.enqueue("picture.quantize", :filename => picture.filename)
 
 # 23
-#require 'ipdconfig'
-#require 'ipderror'
-#require 'ipdpicture'
-#IPDPicture.delete(144)
-#IPDPicture.delete(145)
-#IPDPicture.delete(146)
+require 'ipdconfig'
+require 'ipderror'
+require 'ipdpicture'
+IPDPicture.delete(152)
+IPDPicture.delete(153)
+IPDPicture.delete(154)
+IPDPicture.delete(155)
+IPDPicture.delete(156)
 
 # 24
 #require 'ipdconfig'
@@ -280,7 +282,7 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #picture.save
 
 # 25
-require 'ipdconfig'
-require 'ipderror'
-require 'ipdpicture'
-IPDPicture.get_weighted_random_id(9)
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipdpicture'
+#IPDPicture.get_weighted_random_id(9)

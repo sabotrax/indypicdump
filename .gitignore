@@ -4,5 +4,6 @@ robots.txt
 humans.txt
 log/
 pics/
+tmp/
 test/
 pics
