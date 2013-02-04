@@ -344,8 +344,9 @@ class IPDPicture
     if self.filename.empty? or self.time_sent == 0 or self.id_user == 0 or self.original_hash.empty? or self.id_dump == 0 or self.path.empty?
       raise IPDPictureError, "PICTURE INCOMPLETE ERROR"
     end
+    try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.transaction if try == 0
       if self.id == 0
 	IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path, precursor, successor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor])
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
@@ -353,6 +354,15 @@ class IPDPicture
       else
 	IPDConfig::DB_HANDLE.execute("UPDATE picture SET filename = ?, time_taken = ?, time_sent = ?, id_user = ?, original_hash = ?, id_dump = ?, path = ?, precursor = ?, successor = ? WHERE id = ?", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.id])
       end
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+	IPDConfig::DB_HANDLE.rollback
+	IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")
+	raise
+      end
+      retry
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")

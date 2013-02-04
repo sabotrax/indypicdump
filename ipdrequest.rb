@@ -20,7 +20,25 @@ require 'securerandom'
 class IPDRequest
   ##############################
   def self.remove_by_action(action)
-    IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE action = ?", [action])
+    try = 0
+    begin
+      IPDConfig::DB_HANDLE.transaction if try == 0
+      IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE action = ?", [action])
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE REMOVING REQUEST #{action} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
+    rescue SQLite3::Exception => e
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING REQUEST #{action} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    IPDConfig::DB_HANDLE.commit
   end
 
   attr_accessor :id, :action, :time_created
@@ -65,11 +83,21 @@ class IPDRequest
   ##############################
   def save
     raise IPDRequestError, "ACTION MISSING ERROR" if self.action.empty?
+    try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.transaction if try == 0
       IPDConfig::DB_HANDLE.execute("INSERT INTO user_request (action, code, time_created) VALUES (?, ?, ?)", [self.action, self.code, self.time_created])
       result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
       self.id = result[0][0]
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING REQUEST #{self.action} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING REQUEST #{self.action} / #{e.message} / #{e.backtrace.shift}")

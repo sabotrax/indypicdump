@@ -65,16 +65,26 @@ end
 ##############################
 job 'user_requests.remove_stale' do
   now = Time.now
+  try = 0
   begin
-    IPDConfig::DB_HANDLE.transaction
+    IPDConfig::DB_HANDLE.transaction if try == 0
     result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE time_created < ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
     if result.any?
       IPDConfig::DB_HANDLE.execute("DELETE FROM user_request WHERE time_created < ?", [now.to_i - IPDConfig::REQUEST_ACCEPT_SPAN])
-      IPDConfig::LOG_HANDLE.info("REMOVED STALE USER REQUESTS #{result.size}")
+      IPDConfig::LOG_HANDLE.info("REMOVE STALE USER REQUESTS #{result.size}")
     end
+  rescue SQLite3::BusyException => e
+    sleep 1
+    try += 1
+    if try == 7
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE REMOVING STALE USER REQUESTS #{now.to_i} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    retry
   rescue SQLite3::Exception => e
     IPDConfig::DB_HANDLE.rollback
-    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING STALE USER REQUESTS #{now.to_i}")
+    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING STALE USER REQUESTS #{now.to_i} / #{e.message} / #{e.backtrace.shift}")
     raise
   end
   IPDConfig::DB_HANDLE.commit
@@ -83,16 +93,26 @@ end
 ##############################
 job 'message.remove_old' do
   now = Time.now
+  try = 0
   begin
-    IPDConfig::DB_HANDLE.transaction
+    IPDConfig::DB_HANDLE.transaction if try == 0
     result = IPDConfig::DB_HANDLE.execute("SELECT * FROM message WHERE time_created < ?", [now.to_i - IPDConfig::MSG_SHOW_SPAN])
     if result.any?
       IPDConfig::DB_HANDLE.execute("DELETE FROM message WHERE time_created < ?", [now.to_i - IPDConfig::MSG_SHOW_SPAN])
-      IPDConfig::LOG_HANDLE.info("REMOVED OLD MESSAGES #{result.size}")
+      IPDConfig::LOG_HANDLE.info("REMOVE OLD MESSAGES #{result.size}")
     end
+  rescue SQLite3::BusyException => e
+    sleep 1
+    try += 1
+    if try == 7
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE REMOVING OLD MESSAGES #{now.to_i} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    retry
   rescue SQLite3::Exception => e
     IPDConfig::DB_HANDLE.rollback
-    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING OLD MESSAGES #{now.to_i}")
+    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE REMOVING OLD MESSAGES #{now.to_i} } / #{e.message} / #{e.backtrace.shift}")
     raise
   end
   IPDConfig::DB_HANDLE.commit
@@ -116,5 +136,23 @@ job 'picture.quantize' do |args|
   cc.each do |color|
     cc_hex << sprintf("%02X", color[0]) + sprintf("%02X", color[1]) + sprintf("%02X", color[2])
   end
-  IPDConfig::DB_HANDLE.execute("INSERT INTO picture_common_color (id_picture, color) VALUES (?, ?)", [picture.id, cc_hex.join(",")])
+  try = 0
+  begin
+    IPDConfig::DB_HANDLE.transaction if try == 0
+    IPDConfig::DB_HANDLE.execute("INSERT INTO picture_common_color (id_picture, color) VALUES (?, ?)", [picture.id, cc_hex.join(",")])
+  rescue SQLite3::BusyException => e
+    sleep 1
+    try += 1
+    if try == 7
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING COMMON COLORS ID #{picture.id} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
+    retry
+  rescue SQLite3::Exception => e
+    IPDConfig::DB_HANDLE.rollback
+    IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING COMMON COLORS #{picture.id} / #{e.message} / #{e.backtrace.shift}")
+    raise
+  end
+  IPDConfig::DB_HANDLE.commit
 end

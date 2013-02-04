@@ -89,12 +89,22 @@ class IPDDump
   ##############################
   def save
     raise IPDDumpError, "ALIAS MISSING ERROR" if self.alias.empty?
+    try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.transaction if try == 0
       IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])
       result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
       self.id = result[0][0]
       IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
@@ -119,14 +129,24 @@ class IPDDump
   ##############################
   def add_user(u)
     raise ArgumentError unless u.to_s =~ /^[1-9]\d*$/
+    try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.transaction if try == 0
       result = IPDConfig::DB_HANDLE.execute("SELECT id_dump FROM mapping_dump_user WHERE id_dump = ? AND id_user = ?", [self.id, u])
       raise IPDDumpError, "USER ALREADY IN DUMP ERROR" if result.any?
       IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_dump_user (id_dump, id_user) VALUES (?, ?)", [self.id, u])
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE ADDING USER TO DUMP #{u} -> #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
     rescue IPDDumpError, SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("ERROR WHILE ADDING USER TO DUMP #{u} -> #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE ADDING USER TO DUMP #{u} -> #{self.alias} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit

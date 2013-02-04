@@ -36,12 +36,28 @@ class IPDMessage
   ##############################
   def save
     if self.message_id == 0 or self.id_user == 0
-      raise IPDMessageError, "MESSAGE_ID OR ID_USER MISSING ERROR"
+      raise IPDMessageError, "MESSAGE INCOMPLETE ERROR"
     end
-    IPDConfig::DB_HANDLE.transaction
-    IPDConfig::DB_HANDLE.execute("INSERT INTO message (message_id, time_created, id_user) VALUES (?, ?, ?)", [self.message_id, self.time_created, self.id_user])
-    result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
-    self.id = result[0][0]
+    try = 0
+    begin
+      IPDConfig::DB_HANDLE.transaction if try == 0
+      IPDConfig::DB_HANDLE.execute("INSERT INTO message (message_id, time_created, id_user) VALUES (?, ?, ?)", [self.message_id, self.time_created, self.id_user])
+      result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+      self.id = result[0][0]
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING MESSAGE ID #{self.message_id} USER ID #{self.id_user} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
+    rescue SQLite3::Exception => e
+      IPDConfig::DB_HANDLE.rollback
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING MESSAGE #{self.message_id} USER ID #{self.id_user} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
     IPDConfig::DB_HANDLE.commit
   end
 end

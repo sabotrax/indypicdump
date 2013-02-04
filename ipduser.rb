@@ -84,8 +84,9 @@ class IPDUser
   ##############################
   def save
     raise IPDUserError, "EMAIL MISSING ERROR" if self.email.empty?
+    try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction
+      IPDConfig::DB_HANDLE.transaction if try == 0
       if self.id == 0
 	IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created, accept_external_messages) VALUES (?, ?, ?)", [self.nick, self.time_created, self.accept_external_messages])
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
@@ -106,7 +107,7 @@ class IPDUser
 	    IPDConfig::DB_HANDLE.execute("DELETE FROM email_address WHERE id = ?", [row[0]])
 	  end
 	end
-	# insert addresses that are new
+	# insert new addresses
 	now = Time.now
 	self.email.each do |address|
 	  result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
@@ -117,6 +118,15 @@ class IPDUser
 	  end
 	end
       end
+    rescue SQLite3::BusyException => e
+      sleep 1
+      try += 1
+      if try == 7
+        IPDConfig::DB_HANDLE.rollback
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
+        raise
+      end
+      retry
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
       IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
