@@ -350,6 +350,7 @@ mail.each do |m|
 	msg = IPDMessage.new
 	if group
 	  msg.message_id = IPDConfig::MSG_GROUP_PIC_TOO_SMALL
+	  noof_pictures -= 1
 	else
 	  msg.message_id = IPDConfig::MSG_PIC_TOO_SMALL
 	end
@@ -364,6 +365,7 @@ mail.each do |m|
 	msg = IPDMessage.new
 	if group
 	  msg.message_id = IPDConfig::MSG_GROUP_UNKNOWN_DUMP
+	  noof_pictures -= 1
 	else
 	  msg.message_id = IPDConfig::MSG_UNKNOWN_DUMP
 	end
@@ -381,6 +383,7 @@ mail.each do |m|
 	msg = IPDMessage.new
 	if group
 	  msg.message_id = IPDConfig::MSG_GROUP_NO_DUMP_MEMBER
+	  noof_pictures -= 1
 	else
 	  msg.message_id = IPDConfig::MSG_NO_DUMP_MEMBER
 	end
@@ -402,6 +405,7 @@ mail.each do |m|
 	msg = IPDMessage.new
 	if group
 	  msg.message_id = IPDConfig::MSG_GROUP_DUPLICATE_PICTURE
+	  noof_pictures -= 1
 	else
 	  msg.message_id = IPDConfig::MSG_DUPLICATE_PICTURE
 	end
