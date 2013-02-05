@@ -245,30 +245,62 @@ class IPDPicture
   ##############################
   def self.delete(p)
     raise ArgumentError unless p.to_s =~ /^[1-9]\d*$/
+    # method name is ambigous
+    # as it also finds single pictures (returns array of size 1 then)
+    group = _find_group(p)
     try = 0
+    files = []
     begin
       IPDConfig::DB_HANDLE.transaction if try == 0
-      result = IPDConfig::DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [p])
-      raise PictureMissing, "PICTURE NOT IN DB" unless result.any?
-      IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [p])
-      IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [p])
-      File.unlink(IPDConfig::PICTURE_DIR + "/" + result[0][0] + "/" + result[0][1])
+      group.each do |id|
+	result = IPDConfig::DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [id])
+	raise PictureMissing, "PICTURE NOT IN DB" unless result.any?
+	IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
+	IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [id])
+	files << result[0][0] + "/"  + result[0][1]
+      end
     rescue SQLite3::BusyException => e
       sleep 1
       try += 1
-      if try == 7
+      if try == 14
         IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE ID #{p} / #{e.message} / #{e.backtrace.shift}")
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE IDS #{group.to_s} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
-    rescue Exception => e
+    rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("PICTURE DELETE ERROR ID #{p} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE DELETING PICTURE IDS #{group.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit
+    begin
+      files.each do |file|
+	File.unlink(IPDConfig::PICTURE_DIR + "/" + file)
+      end
+    rescue Exception => e
+      IPDConfig::LOG_HANDLE.fatal("FILE ERROR WHILE DELETING PICTURE #{files.to_s} / #{e.message} / #{e.backtrace.shift}")
+      raise
+    end
   end
+
+  ##############################
+  def self._find_group(*ids)
+    ids.flatten!
+    result = IPDConfig::DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE id = ?", [ids.last])
+    if result.any?
+      if result[0][0] != 0 and !ids.include?(result[0][0])
+	ids << result[0][0]
+	ids += _find_group(ids)
+      end
+      if result[0][1] != 0 and !ids.include?(result[0][1])
+	ids << result[0][1]
+	ids +=  _find_group(ids)
+      end
+    end
+    return ids.uniq.sort
+  end
+  private_class_method :_find_group
 
   ##############################
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump, :precursor, :successor
@@ -380,5 +412,4 @@ class IPDPicture
     end
     IPDConfig::DB_HANDLE.commit
   end
-
 end
