@@ -86,6 +86,8 @@ helpers do
 end
 
 ##############################
+# TODO
+# also has to remove all "remove" requests
 get '/picture/delete/:filename' do
   protected!
   # check params
@@ -119,24 +121,27 @@ get '/picture/show/user/:nick' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages FROM picture p JOIN user u ON p.id_user = u.id WHERE p.id = ?", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages, p.no_show FROM picture p JOIN user u ON p.id_user = u.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING ID #{random_id} DUMP #{id_dump}")
+	elsif rnd_picture[0][10] == 1
+	  err = true
+	  IPDConfig::LOG_HANDLE.warn("PICTURE NO_SHOW WARNING ID #{random_id} DUMP #{id_dump}")
 	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
 	end
 	if err
 	  i += 1
-	  raise PictureMissing, "PICTURE MISSING ERROR DUMP #{id_dump}" if i == 5
+	  raise IPDPictureError, "PICTURE DISPLAY ERROR DUMP #{id_dump}" if i == 5
 	  next
 	end
 	break
       end
-    rescue DumpEmpty, PictureMissing => e
-      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "PictureMissing"
+    rescue DumpEmpty, IPDPictureError => e
+      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "IPDPictureError"
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
@@ -415,24 +420,27 @@ get '/*' do
       i = 0
       while true
 	random_id = IPDPicture.get_smart_random_id(request)
-	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages, d.alias FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [random_id])
+	rnd_picture = IPDConfig::DB_HANDLE.execute("SELECT p.id, p.filename, p.time_taken, p.time_sent, p.id_user, p.path, p.precursor, p.successor, u.nick, u.accept_external_messages, d.alias, p.no_show FROM picture p JOIN user u ON p.id_user = u.id JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [random_id])
 	err = false
 	if rnd_picture.empty?
 	  err = true
 	  IPDConfig::LOG_HANDLE.warn("PICTURE MISSING WARNING ID #{random_id} DUMP #{id_dump}")
+	elsif rnd_picture[0][11] == 1
+	  err = true
+	  IPDConfig::LOG_HANDLE.warn("PICTURE NO_SHOW WARNING ID #{random_id} DUMP #{id_dump}")
 	elsif !File.exists?(IPDConfig::PICTURE_DIR + "/" + rnd_picture[0][5] + "/" + rnd_picture[0][1])
 	  err = true
 	  IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{rnd_picture[0][5]}/#{rnd_picture[0][1]}")
 	end
 	if err
 	  i += 1
-	  raise PictureMissing, "PICTURE MISSING ERROR DUMP #{id_dump}" if i == 5
+	  raise IPDPictureError, "PICTURE DISPLAY ERROR DUMP #{id_dump}" if i == 5
 	  next
 	end
 	break
       end
-    rescue DumpEmpty, PictureMissing => e
-      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "PictureMissing"
+    rescue DumpEmpty, IPDPictureError => e
+      IPDConfig::LOG_HANDLE.fatal(e.message) if e.class.name == "IPDPictureError"
       @msg = "No pictures."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end

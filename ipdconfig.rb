@@ -59,7 +59,7 @@ module IPDConfig
   PICTURE_MAX_HORZ_SIZE = 800
   PICTURE_MAX_VERT_SIZE = 600
   COLORS = PATH + '/data/colors.txt'
-  GROUP_NEGATIVE_DISPLAY_MOD = 0.03
+  GROUP_NEGATIVE_DISPLAY_MOD = 0.04
 
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'

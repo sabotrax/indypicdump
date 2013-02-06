@@ -214,7 +214,8 @@ class IPDPicture
       picture.path = result[0][7]
       picture.precursor = result[0][8]
       picture.successor = result[0][9]
-      picture.dump = result[0][10]
+      picture.no_show = result[0][10]
+      picture.dump = result[0][11]
     end
     return picture
   end
@@ -303,7 +304,7 @@ class IPDPicture
   private_class_method :_find_group
 
   ##############################
-  attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump, :precursor, :successor
+  attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump, :precursor, :successor, :no_show
 
   ##############################
   def initialize
@@ -318,6 +319,7 @@ class IPDPicture
     @dump = ""
     @precursor = 0
     @successor = 0
+    @no_show = 0
   end
 
   ##############################
@@ -390,11 +392,11 @@ class IPDPicture
     begin
       IPDConfig::DB_HANDLE.transaction if try == 0
       if self.id == 0
-	IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path, precursor, successor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor])
+	IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path, precursor, successor, no_show) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show])
 	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	self.id = result[0][0]
       else
-	IPDConfig::DB_HANDLE.execute("UPDATE picture SET filename = ?, time_taken = ?, time_sent = ?, id_user = ?, original_hash = ?, id_dump = ?, path = ?, precursor = ?, successor = ? WHERE id = ?", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.id])
+	IPDConfig::DB_HANDLE.execute("UPDATE picture SET filename = ?, time_taken = ?, time_sent = ?, id_user = ?, original_hash = ?, id_dump = ?, path = ?, precursor = ?, successor = ?, no_show = ? WHERE id = ?", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show, self.id])
       end
     rescue SQLite3::BusyException => e
       sleep 1
