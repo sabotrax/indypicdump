@@ -109,4 +109,8 @@ module IPDConfig
 
   # Misc
   REGEX_EMAIL = %q{[a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b}
+  # TODO
+  # find length cap of first part of filename
+  # and also supported picture extensions
+  REGEX_FILENAME = %q{\d+\.(?:\d+\.)?[a-z]{3,4}}
 end

@@ -58,20 +58,38 @@ class IPDRequest
     request_exists = false
     action = []
     action.push(self.action)
+    sql = ""
     # accept/decline messages
-    if self.action =~ /^accept\s+/i
+    if self.action =~ /^accept\s/
       other = self.action.sub(/accept/, "decline")
       action.push(other)
-    elsif self.action =~ /^decline\s+/i
+    elsif self.action =~ /^decline\s/
       other = self.action.sub(/decline/, "accept")
       action.push(other)
     # open dump/new user
-    elsif self.action =~ /^open dump/i
+    elsif self.action =~ /^open dump/
       other = self.action.sub(/open dump/, "new user")
       action.push(other)
+    # remove pictures
+    # no id must be in two or more remove requests
+    elsif self.action =~ /^remove pictures/
+      remove_action = self.action.split(",")
+      remove_ids = remove_action.slice(3..-1)
+      remove_action = remove_action.slice(0..2).join(",")
+      sql = "SELECT * FROM user_request WHERE action LIKE \"#{remove_action}%\" AND ("
+      sql_part = []
+      remove_ids.each do |id|
+	sql_part << "action LIKE \"%,#{id},%\""
+      end
+      sql += sql_part.join(" OR ")
+      sql += ")"
     end
     action.each do |a|
-      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [a])
+      if sql.empty?
+	result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user_request WHERE action = ?", [a])
+      else
+	result = IPDConfig::DB_HANDLE.execute(sql)
+      end
       if result.any?
 	request_exists = true
 	break

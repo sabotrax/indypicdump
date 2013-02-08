@@ -246,14 +246,13 @@ class IPDPicture
   ##############################
   def self.delete(p)
     raise ArgumentError unless p.to_s =~ /^[1-9]\d*$/
-    # method name is ambigous
-    # as it also finds single pictures (returns array of size 1 then)
-    group = _find_group(p)
+    remove_ids = _find_group(p)
+    remove_ids << p if remove_ids.empty?
     try = 0
     files = []
     begin
       IPDConfig::DB_HANDLE.transaction if try == 0
-      group.each do |id|
+      remove_ids.each do |id|
 	result = IPDConfig::DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [id])
 	raise PictureMissing, "PICTURE NOT IN DB" unless result.any?
 	IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
@@ -265,13 +264,13 @@ class IPDPicture
       try += 1
       if try == 14
         IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE IDS #{group.to_s} / #{e.message} / #{e.backtrace.shift}")
+        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
     rescue SQLite3::Exception => e
       IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE DELETING PICTURE IDS #{group.to_s} / #{e.message} / #{e.backtrace.shift}")
+      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
     IPDConfig::DB_HANDLE.commit
@@ -288,7 +287,7 @@ class IPDPicture
   ##############################
   def self._find_group(*ids)
     ids.flatten!
-    result = IPDConfig::DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE id = ?", [ids.last])
+    result = IPDConfig::DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE (precursor != 0 OR successor != 0) AND id = ?", [ids.last])
     if result.any?
       if result[0][0] != 0 and !ids.include?(result[0][0])
 	ids << result[0][0]
@@ -298,10 +297,12 @@ class IPDPicture
 	ids << result[0][1]
 	ids +=  _find_group(ids)
       end
+    else
+      ids.shift
     end
     return ids.uniq.sort
   end
-  private_class_method :_find_group
+  #private_class_method :_find_group
 
   ##############################
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump, :precursor, :successor, :no_show
@@ -413,5 +414,19 @@ class IPDPicture
       raise
     end
     IPDConfig::DB_HANDLE.commit
+  end
+
+  ##############################
+  def in_group?
+    in_group = false
+    if self.precursor != 0 or self.successor != 0
+      in_group = true
+    end
+    return in_group
+  end
+
+  ##############################
+  def group_ids
+    self.class._find_group self.id 
   end
 end

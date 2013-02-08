@@ -1,0 +1,24 @@
+doctype 5
+html lang="en"
+  body
+    | Hello #{nick},
+    br
+    p
+      | someone (eventually you) wants to remove pictures.
+      br
+      | If that is OK then just reply to this mail.
+    p
+      | After your confirmation, the pictures you named will no longer be shown until their final removal about 24 hours later.
+      br
+      | You can stop the process by sending a mail to <a href="mailto:me@indypicdump.com?subject=keep pictures">me@indypicdump.com</a> with the subject "keep pictures".
+    p
+      | Those pictures are:
+      ul
+        - pictures.each do |picture|
+          li <a href="http://indypicdump.com/pics/#{picture["path"]}/#{picture["filename"]}">#{picture["filename"]}</a> #{picture["in_group"] == true ? "(Part of group, will be deleted en bloc.)" : ""}
+    p
+      | Have a nice day,
+      br
+      | busy bee
+    p
+      | PS: Include request code #{code} in reply.

@@ -261,7 +261,7 @@ $:.unshift("/home/schommer/dev/indypicdump")
 require 'ipdconfig'
 require 'ipderror'
 require 'ipdpicture'
-IPDPicture.delete(172)
+IPDPicture.delete(179)
 
 # 24
 #require 'ipdconfig'

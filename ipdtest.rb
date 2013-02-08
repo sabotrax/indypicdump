@@ -24,9 +24,11 @@ class IPDTest
     end
     mail = Mail.new do
       from	"root@indypicdump.com"
-      to	"foo@indypicdump.com"
-      subject	"some"
-      add_file 	"test/fish1_test.jpg"
+      to	"me@indypicdump.com"
+      subject	"remove pictures"
+      #body	"loesch das 1358970764.1082408.jpg 1360313343.2279599.png 1359321387.8619423.jpg"
+      body	"loesch das 1360313343.2711864.gif"
+      #add_file 	"test/fish1_test.jpg"
       #add_file 	"test/fish2_test.jpg"
       #add_file 	"test/1_test.png"
       #add_file 	"test/2_test.gif"

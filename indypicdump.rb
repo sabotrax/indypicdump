@@ -221,6 +221,58 @@ mail.each do |m|
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :pictures => pictures, :common_color => acc, :subject => "Your stats")
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
 	end
+      # remove pictures
+      when /\bremove\s+pictures?\b/i
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load(m.from[0])
+	  # find filenames in body
+	  body = ""
+	  if m.multipart?
+	    m.parts.each do |p|
+	      body += p.decoded if p.content_type.start_with?('text/')
+	    end
+	  else
+	    body = m.body.decoded
+	  end
+	  remove_ids = []
+	  picture_list = []
+	  err = false
+	  body.scan(/\b#{IPDConfig::REGEX_FILENAME}\b/i).uniq.each do |f|
+	    # check ownership of pictures
+	    # TODO
+	    # better downsize pictures in db and in fs to avoid misses
+	    unless user.owns_picture?(f)
+	      Stalker.enqueue("email.send", :to => m.from[0], :template => :remove_picture_not_owner, :nick => user.nick, :subject => "Notice")
+	      err = true
+	      break
+	    end
+	    picture = IPDPicture.load(f)
+	    picture_hash = {
+	      :path => picture.path,
+	      :filename => picture.filename
+	    }
+	    if picture.in_group? and !remove_ids.include?(picture.group_ids.first)
+	      remove_ids << picture.group_ids.first
+	      picture_hash[:in_group] = true
+	    else
+	      remove_ids << picture.id
+	      picture_hash[:in_group] = false
+	    end
+	    picture_list << picture_hash
+	  end
+	  next if err
+	  action = ["remove pictures", "confirm", user.nick] + remove_ids
+	  # check duplicate requests and ignore
+	  request = IPDRequest.new
+	  request.action = action.join(",")
+	  # NOTE
+	  # IPDRequest#exists? needs the trailing "," for this action
+	  request.action += ","
+	  next if request.exists?
+	  # send request
+	  request.save
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :remove_picture_confirm_deletion, :code => request.code, :nick => user.nick, :pictures => picture_list, :subject => "Request to remove pictures")
+	end
     end
     next
   end
