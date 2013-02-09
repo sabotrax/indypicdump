@@ -305,6 +305,17 @@ class IPDPicture
   #private_class_method :_find_group
 
   ##############################
+  def self.load_group(id)
+    # TODO
+    # add argument check
+    group = []
+    _find_group(id).each do |i|
+      group << self.load(i)
+    end
+    return group
+  end
+
+  ##############################
   attr_accessor :id, :filename, :time_taken, :time_sent, :id_user, :original_hash, :id_dump, :path, :dump, :precursor, :successor, :no_show
 
   ##############################
@@ -428,5 +439,33 @@ class IPDPicture
   ##############################
   def group_ids
     self.class._find_group self.id 
+  end
+
+  ##############################
+  def no_show!
+    @no_show = 1
+  end
+  
+  ##############################
+  def no_show?
+    if @no_show == 1
+      return true
+    else
+      return false
+    end
+  end
+  
+  ##############################
+  def show!
+    @no_show = 0
+  end
+
+  ##############################
+  def show?
+    if @no_show == 0
+      return true
+    else
+      return false
+    end
   end
 end

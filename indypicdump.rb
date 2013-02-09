@@ -370,6 +370,30 @@ mail.each do |m|
 	      IPDRequest.remove_by_action(result[0][0])
 	      IPDConfig::LOG_HANDLE.info("USER REQUEST NEW DUMP #{dump.alias} BY #{action[2]} IS NEW USER #{user.nick}")
 	      next
+	    # remove pictures
+	    when /remove pictures/
+	      user = IPDUser.load(action[2])
+	      # hide pictures up until their final deletion
+	      remove_pictures = []
+	      action[3..-1].each do |id|
+		picture = IPDPicture.load(id)
+		if picture.in_group?
+		  remove_pictures += IPDPicture.load_group(picture.id)
+		else
+		  remove_pictures << picture
+		end
+	      end
+	      remove_pictures.each do |picture|
+		picture.no_show!
+		picture.save
+	      end
+	      # build final deletion request
+	      IPDRequest.remove_by_action(result[0][0])
+	      request = IPDRequest.new
+	      request.action = ["remove pictures", "complete", action[2..-1]].join(",")
+	      request.save
+	      IPDConfig::LOG_HANDLE.info("USER REQUEST DELETE PICTURES #{user.nick} -#{remove_pictures.size}")
+	      next
 	  end
 	else
 	  # send error mail?
