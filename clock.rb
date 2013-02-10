@@ -25,4 +25,5 @@ handler { |job| Stalker.enqueue(job) }
 
 every 1.hours, 'picture.report_new'
 every 1.hours, 'user_requests.remove_stale'
+every 1.hours, 'picture.complete_removal'
 every 1.day, 'message.remove_old'

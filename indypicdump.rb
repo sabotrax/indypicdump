@@ -249,14 +249,17 @@ mail.each do |m|
 	    picture = IPDPicture.load(f)
 	    picture_hash = {
 	      :path => picture.path,
-	      :filename => picture.filename
+	      :filename => picture.filename,
+	      :in_group => false
 	    }
-	    if picture.in_group? and !remove_ids.include?(picture.group_ids.first)
-	      remove_ids << picture.group_ids.first
+	    if picture.in_group?
+	      first = picture.group_ids.first
+	      unless remove_ids.include?(first)
+		remove_ids << first
+	      end
 	      picture_hash[:in_group] = true
 	    else
 	      remove_ids << picture.id
-	      picture_hash[:in_group] = false
 	    end
 	    picture_list << picture_hash
 	  end
@@ -383,9 +386,9 @@ mail.each do |m|
 		  remove_pictures << picture
 		end
 	      end
-	      remove_pictures.each do |picture|
-		picture.no_show!
-		picture.save
+	      remove_pictures.each do |p|
+		p.no_show!
+		p.save
 	      end
 	      # build final deletion request
 	      IPDRequest.remove_by_action(result[0][0])

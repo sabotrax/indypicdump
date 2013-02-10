@@ -21,8 +21,10 @@ require 'stalker'
 require 'mail'
 require 'slim'
 require 'ipdconfig'
+require 'ipderror'
 require 'ipdhelper'
 require 'ipdpicture'
+require 'ipdrequest'
 include Stalker
 
 ##############################
@@ -155,4 +157,21 @@ job 'picture.quantize' do |args|
     raise
   end
   IPDConfig::DB_HANDLE.commit
+end
+
+##############################
+job 'picture.complete_removal' do
+  now = Time.now
+  result = IPDConfig::DB_HANDLE.execute("SELECT action FROM user_request WHERE action LIKE \"remove pictures,complete%\" AND time_created < ?", [now.to_i - IPDConfig::PICTURE_REMOVAL_GRACE_SPAN])
+  result.each do |row|
+    action = row[0].split(",")
+    remove_ids = action.slice(3..-1)
+    remove_ids.each do |id|
+      IPDPicture.delete(id)
+    end
+    IPDRequest.remove_by_action(row[0])
+    request = IPDRequest.new
+    request.action = ["remove pictures", "cleared", action[2], remove_ids.size].join(",")
+    request.save
+  end
 end

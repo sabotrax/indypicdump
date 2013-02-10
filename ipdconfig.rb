@@ -60,6 +60,7 @@ module IPDConfig
   PICTURE_MAX_VERT_SIZE = 600
   COLORS = PATH + '/data/colors.txt'
   GROUP_NEGATIVE_DISPLAY_MOD = 0.04
+  PICTURE_REMOVAL_GRACE_SPAN = 86400
 
   # User
   ADJECTIVES = PATH + '/data/adjectives.txt'

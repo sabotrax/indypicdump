@@ -287,6 +287,7 @@ class IPDPicture
   ##############################
   def self._find_group(*ids)
     ids.flatten!
+    ids = ids.map(&:to_i)
     result = IPDConfig::DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE (precursor != 0 OR successor != 0) AND id = ?", [ids.last])
     if result.any?
       if result[0][0] != 0 and !ids.include?(result[0][0])
@@ -438,7 +439,7 @@ class IPDPicture
 
   ##############################
   def group_ids
-    self.class._find_group self.id 
+    self.class._find_group(self.id)
   end
 
   ##############################
