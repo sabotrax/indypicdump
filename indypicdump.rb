@@ -221,6 +221,7 @@ mail.each do |m|
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :pictures => pictures, :common_color => acc, :subject => "Your stats")
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
 	end
+	next
       # remove pictures
       when /\bremove\s+pictures?\b/i
 	if IPDUser.exists?(m.from[0])
@@ -276,6 +277,25 @@ mail.each do |m|
 	  request.save
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => :remove_picture_confirm_deletion, :code => request.code, :nick => user.nick, :pictures => picture_list, :subject => "Request to remove pictures")
 	end
+	next
+      # keep pictures
+      when /\bkeep\s+pictures?\b/i
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load(m.from[0])
+	  now = Time.now
+	  result = IPDConfig::DB_HANDLE.execute("SELECT action FROM user_request WHERE action LIKE ? AND time_created >= ? ORDER BY time_created ASC", ["remove pictures,%,#{user.nick}%", now.to_i - 129600])
+	  template = ""
+	  result.each do |row|
+	    if row[0] =~ /complete/
+	      template = :remove_picture_kept_pictures if template.empty?
+	      IPDRequest.remove_by_action(row[0])
+	    elsif row[0] =~ /cleared/
+	      template = :remove_picture_already_gone if template.empty?
+	    end
+	  end
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => template, :nick => user.nick, :subject => "Request to keep pictures") if template != ""
+	end
+	next
     end
     next
   end
