@@ -113,6 +113,18 @@ get '/picture/delete/:filename' do
 end
 
 ##############################
+get '/picture/show/detail/:filename' do
+  unless IPDPicture.exists?(params[:filename])
+    @msg = "No such picture."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @picture = IPDPicture.load(params[:filename])
+  @user = IPDUser.load(@picture.id_user)
+  @picture.dump = "detail"
+  slim :picture, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
+end
+
+##############################
 get '/picture/show/user/:nick' do
   # get here from /pic/show/user/:nick/random (and others)
   if request.has_dump? and IPDUser.exists?(params[:nick])
@@ -185,7 +197,7 @@ get '/picture/contact/:nick/about/:filename/in/:dump' do
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
   @picture = IPDPicture.load(params[:filename])
-  unless params[:dump] == "ud"
+  unless params[:dump] == "ud" or params[:dump] == "detail"
     unless IPDDump.exists?(params[:dump])
       @msg = "Dump does not exists."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -195,7 +207,8 @@ get '/picture/contact/:nick/about/:filename/in/:dump' do
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
   else
-    @picture.dump = "ud"
+    #@picture.dump = "ud"
+    @picture.dump = params[:dump]
   end
   @msg = ""
   @message = ""
@@ -222,7 +235,7 @@ post '/picture/contact/:nick/about/:filename/in/:dump' do
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
   @picture = IPDPicture.load(params[:filename])
-  unless params[:dump] == "ud"
+  unless params[:dump] == "ud" or params[:dump] == "detail"
     unless IPDDump.exists?(params[:dump])
       @msg = "Dump does not exists."
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
@@ -243,6 +256,8 @@ post '/picture/contact/:nick/about/:filename/in/:dump' do
   @msg = "Message sent. You will be redirected."
   if params[:dump] == "ud"
     url = "/picture/show/user/#{@user.nick.dash}"
+  elsif params[:dump] == "detail"
+    url = "/picture/show/detail/#{@picture.filename}"
   else
     url = "/#{params[:dump]}"
   end

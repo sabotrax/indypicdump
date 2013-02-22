@@ -1,6 +1,7 @@
 beta
 busybee
 busy bee
+detail
 me
 superdump
 super dump
