@@ -26,6 +26,7 @@ require 'slim'
 require 'rack/recaptcha'
 require 'mail'
 require 'stalker'
+require 'sinatra/cookies'
 require 'ipdconfig'
 require 'ipdpicture'
 require 'ipdmessage'
@@ -207,7 +208,6 @@ get '/picture/contact/:nick/about/:filename/in/:dump' do
       halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
     end
   else
-    #@picture.dump = "ud"
     @picture.dump = params[:dump]
   end
   @msg = ""
@@ -286,6 +286,49 @@ get '/user/show/:nick' do
     @msgs.push(@msg)
   end
   slim :user, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+get '/dump/check/password/:dump' do
+  @msg = ""
+  unless IPDDump.exists?(params[:dump])
+    @msg = "Dump does not exists."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @dump = IPDDump.load(params[:dump])
+  if @dump.open?
+    @msg = "Hooray! This dump is open.<br />No need to do anything."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  if @dump.hidden?
+    @msg = "Dump does not exists."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  slim :check_password, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
+post '/dump/check/password/:dump' do
+  unless IPDDump.exists?(params[:dump])
+    @msg = "Dump does not exists."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @dump = IPDDump.load(params[:dump])
+  if @dump.open?
+    @msg = "Hooray! This dump is open.<br />No need to do anything."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  if @dump.hidden?
+    @msg = "Dump does not exists."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  password = Digest::RMD160::hexdigest(params[:keyword])
+  if @dump.password != password
+    @msg = "Wrong keyword."
+    halt slim :check_password, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  response.set_cookie(@dump.id, :value => Digest::RMD160::hexdigest(@dump.time_created.to_s + password.to_s), :path => "/#{@dump.alias}", :expires => Time.now + IPDConfig::COOKIE_LIFETIME)
+  redirect "/#{@dump.alias}"
 end
 
 ##############################
@@ -431,6 +474,10 @@ end
 get '/*' do
   if request.has_dump? and IPDDump.dump.has_key?(request.dump)
     id_dump = IPDDump.dump[request.dump]
+    dump = IPDDump.load(id_dump)
+    if dump.protected?
+      redirect "/dump/check/password/#{dump.alias}" if cookies[dump.id] != Digest::RMD160::hexdigest(dump.time_created.to_s + dump.password.to_s)
+    end
     begin
       i = 0
       while true

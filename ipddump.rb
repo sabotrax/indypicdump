@@ -72,27 +72,33 @@ class IPDDump
       dump.id = result[0][0]
       dump.alias = result[0][1]
       dump.time_created = result[0][2]
+      dump.state = result[0][3]
+      dump.password = result[0][4]
     end
     return dump
   end
 
-  attr_accessor :id, :alias, :time_created, :user
+  attr_accessor :id, :alias, :time_created, :user, :state, :password
 
   ##############################
   def initialize
     @id = 0
     @alias = ""
     @time_created = Time.now.to_i
+    @state = "open"
+    @password = ""
     @user = []
   end
 
   ##############################
   def save
-    raise IPDDumpError, "ALIAS MISSING ERROR" if self.alias.empty?
+    if self.alias.empty? or self.state == "protected" and self.password.empty?
+      raise IPDDumpError, "DUMP INCOMPLETE ERROR"
+    end
     try = 0
     begin
       IPDConfig::DB_HANDLE.transaction if try == 0
-      IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created) VALUES (?, ?)", [self.alias, self.time_created])
+      IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created, state, password) VALUES (?, ?, ?, ?)", [self.alias, self.time_created, self.state, self.password])
       result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
       self.id = result[0][0]
       IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
@@ -151,4 +157,49 @@ class IPDDump
     end
     IPDConfig::DB_HANDLE.commit
   end
+
+  ##############################
+  def open!
+    @state = "open"
+    @password = ""
+  end
+
+  ##############################
+  def open?
+    if @state == "open"
+      return true
+    else
+      return false
+    end
+  end
+
+  ##############################
+  def hide!
+    @state = "hidden"
+    @password = ""
+  end
+
+  ##############################
+  def hidden?
+    if @state == "hidden"
+      return true
+    else
+      return false
+    end
+  end
+
+  ##############################
+  def protect!
+    @state = "protected"
+  end
+
+  ##############################
+  def protected?
+    if @state == "protected"
+      return true
+    else
+      return false
+    end
+  end
+
 end

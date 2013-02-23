@@ -107,6 +107,7 @@ module IPDConfig
     "%n, Apprentice of \"%d\"",
     "%i\"Redshirt\"",
   ]
+  COOKIE_LIFETIME = 2678400
 
   # Misc
   REGEX_EMAIL = %q{[a-z0-9!#$\%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$\%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b}
