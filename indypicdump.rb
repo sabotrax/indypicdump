@@ -354,7 +354,8 @@ mail.each do |m|
 	      user = IPDUser.load(action[2])
 	      # add known users to dump
 	      if user
-		dump.add_user(user.id)
+		dump.add_user(user.id, :admin => 0, :time_created => Time.now.to_i)
+		dump.save
 		Stalker.enqueue("email.send", :to => action[2], :template => :open_dump_notice_invited, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
 		IPDRequest.remove_by_action(result[0][0])
 		IPDConfig::LOG_HANDLE.info("USER REQUEST ADD USER #{user.nick} TO DUMP #{dump.alias}")
@@ -375,7 +376,8 @@ mail.each do |m|
 	      user.email = action[2]
 	      user.save
 	      dump = IPDDump.load(action[1])
-	      dump.add_user(user.id)
+	      dump.add_user(user.id, :admin => 0, :time_created => Time.now.to_i)
+	      dump.save
 	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
 	      IPDConfig::LOG_HANDLE.info("USER REQUEST NEW USER #{action[2]} IS #{user.nick} IN DUMP #{dump.alias}")
@@ -384,11 +386,11 @@ mail.each do |m|
 	    when /create dump/
 	      dump = IPDDump.new
 	      dump.alias = action[1]
-	      dump.save
 	      user = IPDUser.new
 	      user.email = action[2]
 	      user.save
-	      dump.add_user(user.id)
+	      dump.add_user(user.id, :admin => 1, :time_created => Time.now.to_i)
+	      dump.save
 	      Stalker.enqueue("email.send", :to => action[2], :template => :new_user_notice_invited, :dump => dump.alias.undash, :subject => "Welcome to indypicdump")
 	      IPDRequest.remove_by_action(result[0][0])
 	      IPDConfig::LOG_HANDLE.info("USER REQUEST NEW DUMP #{dump.alias} BY #{action[2]} IS NEW USER #{user.nick}")

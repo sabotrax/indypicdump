@@ -16,6 +16,7 @@
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
 require 'ipdhelper'
+#require 'ipddump'
 
 class IPDUser
   ##############################
@@ -209,6 +210,16 @@ class IPDUser
     end
     owns_picture = true if result.any?
     return owns_picture
+  end
+
+  ##############################
+  def admin_of_dump?(d)
+    admin_of_dump = false
+    dump = IPDDump.load(d)
+    if dump and dump.has_user?(self.id)
+      admin_of_dump = true if dump.user[self.id][:admin] == 1
+    end
+    return admin_of_dump
   end
 
   private

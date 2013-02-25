@@ -406,9 +406,9 @@ post '/dump/create/?' do
   if user
     dump = IPDDump.new
     dump.alias = dump_alias
+    dump.add_user(user.id, :admin => 1, :time_created => Time.now.to_i)
     dump.save
     IPDConfig::LOG_HANDLE.info("NEW DUMP #{dump.alias} / #{request.ip} / #{request.user_agent}")
-    dump.add_user(user.id)
     Stalker.enqueue("email.send", :to => address, :template => :create_dump_notice_creator, :nick => user.nick, :dump => dump.alias.undash, :subject => "A new place to store pictures")
     IPDConfig::LOG_HANDLE.info("ADD USER #{user.nick} TO DUMP #{dump.alias}")
     IPDDump.reload_dump_map

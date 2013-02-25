@@ -25,7 +25,7 @@ class IPDTest
     mail = Mail.new do
       from	"root@indypicdump.com"
       to	"me@indypicdump.com"
-      subject	"keep pictures"
+      subject	"open foo for facepop@indypicdump.com"
       #body	"1358879033.8317907.gif 1358879585.2083323.jpg"
       #add_file 	"test/fish1_test.jpg"
       #add_file 	"test/fish2_test.jpg"

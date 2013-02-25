@@ -283,10 +283,51 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #require 'ipdpicture'
 #IPDPicture.get_weighted_random_id(9)
 
-# 25
+# 26
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipddump'
+#dump = IPDDump.new
+#dump.protect!
+#puts dump.inspect
+
+# 27
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipddump'
+#dump = IPDDump.load(9)
+#puts dump.inspect
+#puts dump.has_user?("root@indypicdump.com")
+
+# 28
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipddump'
+#dump = IPDDump.new
+#dump.alias = "testo"
+#dump.add_user(1, :admin => 0, :time_created => 1361799405)
+#dump.add_user(69, :admin => 1, :time_created => 1361799405)
+#dump.save
+#puts dump.inspect
+
+# 39
+#require 'ipdconfig'
+#require 'ipderror'
+#require 'ipddump'
+#dump = IPDDump.load(19)
+#puts dump.inspect
+#dump.hide!
+#dump.add_user(1, :admin => 1, :time_created => 1361799405)
+#dump.add_user(68, :admin => 0, :time_created => 1361799405)
+#puts dump.inspect
+#dump.save
+#puts dump.inspect
+
+# 40
 require 'ipdconfig'
 require 'ipderror'
 require 'ipddump'
-dump = IPDDump.new
-dump.protect!
-puts dump.inspect
+require 'ipduser'
+user = IPDUser.load(1)
+puts user.inspect
+puts user.admin_of_dump?("foo")
