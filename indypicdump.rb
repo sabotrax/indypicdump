@@ -296,6 +296,54 @@ mail.each do |m|
 	  Stalker.enqueue("email.send", :to => m.from[0], :template => template, :nick => user.nick, :subject => "Request to keep pictures") if template != ""
 	end
 	next
+      # set dump
+      when /\bset\s+([a-z0-9][a-z0-9\- ]*)(?<![\- ])\s+(open|hidden|protected)\b/i
+	state = $2.downcase
+	if IPDUser.exists?(m.from[0])
+	  user = IPDUser.load(m.from[0])
+	  # check if dump exists
+	  dump = IPDDump.load($1.dash)
+	  unless dump
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_no_dump, :nick => user.nick, :dump => $1.undash, :state => state, :subject => "Notice")
+	    next
+	  end
+	  # check duplicate requests and ignore
+	  request = IPDRequest.new
+	  request.action = ["set dump", dump.alias, state].join(",")
+	  next if request.exists?
+	  # check if user is admin of dump
+	  unless user.admin_of_dump?(dump.id)
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_no_admin, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Notice")
+	    next
+	  end
+	  # check if dump is already in the wanted state
+	  if dump.open? and state == "open" or dump.hidden? and state == "hidden" or dump.protected? and state == "protected"
+	    Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_already_is, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Notice")
+	    next
+	  end
+	  # find password in body
+	  if state == "protected"
+	    body = ""
+	    if m.multipart?
+	      m.parts.each do |p|
+		body += p.decoded if p.content_type.start_with?('text/')
+	      end
+	    else
+	      body = m.body.decoded
+	    end
+	    if body !~ /\bpassword\s+"([a-z0-9\- ]+)"/i
+	      Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_no_password, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Notice")
+	      next
+	    elsif $1.to_s.length < 8
+	      Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_short_password, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Notice")
+	      next
+	    end
+	    request.action += ",#{Digest::RMD160::hexdigest($1.to_s)}"
+	  end
+	  # send request
+	  request.save
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_request_code, :code => request.code, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Request to set state of dump")
+	end
     end
     next
   end
@@ -418,6 +466,25 @@ mail.each do |m|
 	      request.action = ["remove pictures", "complete", action[2..-1]].join(",")
 	      request.save
 	      IPDConfig::LOG_HANDLE.info("USER REQUEST DELETE PICTURES #{user.nick} -#{remove_pictures.size}")
+	      next
+	    # set dump
+	    when /set dump/
+	      dump = IPDDump.load(action[1])
+	      if action[2] == "open"
+		dump.open!
+		dump.password = ""
+	      elsif action[2] == "hidden"
+		dump.hide!
+		dump.password = ""
+	      elsif action[2] == "protected"
+		dump.protect!
+		dump.password = action[3]
+	      end
+	      # TODO
+	      # create job to send email to all members of dump
+	      dump.save
+	      IPDRequest.remove_by_action(result[0][0])
+	      IPDConfig::LOG_HANDLE.info("USER REQUEST SET DUMP #{dump.alias} #{action[2]}")
 	      next
 	  end
 	else

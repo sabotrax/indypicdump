@@ -230,4 +230,5 @@ class IPDDump
     }
   end
   
+  alias :change_user :add_user
 end

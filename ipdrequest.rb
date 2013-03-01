@@ -83,6 +83,11 @@ class IPDRequest
       end
       sql += sql_part.join(" OR ")
       sql += ")"
+    # set dump
+    # we allow only one state change at a time
+    elsif self.action =~ /^set dump/
+      set_action = self.action.split(",")
+      sql = "SELECT * FROM user_request WHERE action LIKE \"set dump,#{set_action[1]},%\""
     end
     action.each do |a|
       if sql.empty?
