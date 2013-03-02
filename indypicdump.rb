@@ -338,7 +338,7 @@ mail.each do |m|
 	      Stalker.enqueue("email.send", :to => m.from[0], :template => :set_dump_short_password, :nick => user.nick, :dump => dump.alias.undash, :state => state, :subject => "Notice")
 	      next
 	    end
-	    request.action += ",#{Digest::RMD160::hexdigest($1.to_s)}"
+	    request.action += ",#{$1}"
 	  end
 	  # send request
 	  request.save
@@ -478,11 +478,15 @@ mail.each do |m|
 		dump.password = ""
 	      elsif action[2] == "protected"
 		dump.protect!
-		dump.password = action[3]
+		dump.password = Digest::RMD160::hexdigest(action[3].to_s)
 	      end
-	      # TODO
-	      # create job to send email to all members of dump
 	      dump.save
+	      dump.user.each_key do |id|
+		user = IPDUser.load(id)
+		unless user.email[0].to_s.empty?
+		  Stalker.enqueue("email.send", :to => user.email[0], :template => :set_dump_changed_state, :nick => user.nick, :dump => dump.alias.undash, :state => action[2], :password => action[3], :subject => "State of dump changed")
+		end
+	      end
 	      IPDRequest.remove_by_action(result[0][0])
 	      IPDConfig::LOG_HANDLE.info("USER REQUEST SET DUMP #{dump.alias} #{action[2]}")
 	      next

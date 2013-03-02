@@ -332,6 +332,16 @@ post '/dump/check/password/:dump' do
 end
 
 ##############################
+get '/dump/list/?' do
+  @result = IPDConfig::DB_HANDLE.execute("SELECT d.alias FROM dump d JOIN picture p ON d.id = p.id_dump AND p.id NOT NULL WHERE d.state != ? GROUP BY d.id ORDER BY d.alias ASC;", ["hidden"])
+  unless @result.any?
+    @msg = "No dumps yet."
+    halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  slim :dump_list, :pretty => IPDConfig::RENDER_PRETTY
+end
+
+##############################
 get '/dump/show/:dump' do
   @dump = IPDDump.load(params[:dump])
   unless @dump
