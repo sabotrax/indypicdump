@@ -457,12 +457,6 @@ get '/' do
 end
 
 ##############################
-get '/usage.html' do
-  protected!
-  slim :usage, :pretty => IPDConfig::RENDER_PRETTY
-end
-
-##############################
 get '/about.html' do
   @counter = IPDPicture.count_pictures
   slim :about, :pretty => IPDConfig::RENDER_PRETTY

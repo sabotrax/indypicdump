@@ -4,7 +4,7 @@ html lang="en"
     | Hello #{user["nick"]},
     br
     p
-      | you have joined indypicdump on #{Time.at(user["time_created"]).strftime("%e.%m.%Y %H:%M")}.
+      | You have joined indypicdump on #{Time.at(user["time_created"]).strftime("%e.%m.%Y %H:%M")}.
       br
       - if email.length == 1
         | Your have the address #{email.first} assigned to your account.
