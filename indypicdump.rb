@@ -209,6 +209,7 @@ mail.each do |m|
 	  end
 	  # find the most common color of the newest picture
 	  acc = []
+	  filename = ""
 	  if pictures != 0
 	    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id_user = ? ORDER BY id DESC LIMIT 1", [user.id])
 	    picture = IPDPicture.load(result[0][0])
@@ -217,8 +218,9 @@ mail.each do |m|
 	    rescue PictureCommonColorMissing
 	      IPDConfig::LOG_HANDLE.error("COMMON COLOR MISSING ERROR ID #{picture.id}")
 	    end
+	    filename = picture.filename
 	  end
-	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :pictures => pictures, :common_color => acc, :subject => "Your stats")
+	  Stalker.enqueue("email.send", :to => m.from[0], :template => :stats_please, :user => user_hash, :email => email_list, :dump => dump_list, :pictures => pictures, :filename => filename, :common_color => acc, :subject => "Your stats")
 	  IPDConfig::LOG_HANDLE.info("USER REQUEST STATS PLEASE #{m.from[0]}")
 	end
 	next

@@ -25,8 +25,8 @@ class IPDTest
     mail = Mail.new do
       from	"root@indypicdump.com"
       to	"me@indypicdump.com"
-      subject	"set foo protected"
-      body	"1358879033.8317907.gif password \"lala X lala\""
+      subject	"stats please"
+      #body	"1358879033.8317907.gif password \"lala X lala\""
       #add_file 	"test/fish1_test.jpg"
       #add_file 	"test/fish2_test.jpg"
       #add_file 	"test/1_test.png"
