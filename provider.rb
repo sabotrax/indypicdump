@@ -333,10 +333,14 @@ end
 
 ##############################
 get '/dump/list/?' do
-  @result = IPDConfig::DB_HANDLE.execute("SELECT d.alias FROM dump d JOIN picture p ON d.id = p.id_dump AND p.id NOT NULL WHERE d.state != ? GROUP BY d.id ORDER BY d.alias ASC;", ["hidden"])
-  unless @result.any?
+  result = IPDConfig::DB_HANDLE.execute("SELECT d.id FROM dump d JOIN picture p ON d.id = p.id_dump AND p.id NOT NULL WHERE d.state != ? GROUP BY d.id ORDER BY d.alias ASC;", ["hidden"])
+  unless result.any?
     @msg = "No dumps yet."
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
+  end
+  @dumps = []
+  result.each do |row|
+    @dumps << IPDDump.load(row[0])
   end
   slim :dump_list, :pretty => IPDConfig::RENDER_PRETTY
 end
