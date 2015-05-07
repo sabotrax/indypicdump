@@ -17,7 +17,7 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-$:.unshift("/home/schommer/dev/indypicdump")
+$:.unshift("#{File.dirname(__FILE__)}")
 
 # 1
 #puts Time.now.to_f
@@ -49,7 +49,7 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #puts DateTime.strptime(date, '%Y:%m:%d %H:%M:%S').to_time.to_i
 
 # 5
-#$:.unshift("/home/schommer/dev/indypicdump")
+#$:.unshift("#{File.dirname(__FILE__)}")
 #require "./ipdconfig"
 #require "./ipduser"
 
@@ -99,7 +99,7 @@ $:.unshift("/home/schommer/dev/indypicdump")
 #puts user.inspect
 
 # 11
-#$:.unshift("/home/schommer/dev/indypicdump")
+#$:.unshift("#{File.dirname(__FILE__)}")
 #require "./ipdconfig"
 #require "./ipduser"
 

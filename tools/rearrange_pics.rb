@@ -25,7 +25,7 @@
 #
 # have:		path column added to IPDPicute and db scheme
 
-$:.unshift("/home/schommer/dev/indypicdump")
+$:.unshift("#{File.dirname(__FILE__)}")
 
 require 'sqlite3'
 require 'fileutils'

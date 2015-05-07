@@ -30,3 +30,7 @@ Apache:
 Indypicdump:
 
 - Edit ipdconfig.rb
+
+- Create link to picture directory
+	cd public
+	ln -s ../pics/ pics

@@ -17,7 +17,7 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-$:.unshift("/home/schommer/dev/indypicdump")
+$:.unshift("#{File.dirname(__FILE__)}")
 
 require 'sqlite3'
 require 'stalker'
