@@ -18,6 +18,9 @@
 require 'logger'
 require 'sqlite3'
 
+# TODO
+# add comments to configuration options 
+
 module IPDConfig
   # General
   PATH = '/home/schommer/dev/indypicdump'

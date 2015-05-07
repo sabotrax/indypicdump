@@ -1,5 +1,32 @@
-Gems:
+Installation Guide for Debian 7.x
 
-Install the needed Gems with "bundler install".
+Ruby Gems:
 
+- Install the needed Gems
+	"bundler install".
+  Bundler will complain about missing developement packages, which you'll have to install
 
+Apache:
+
+- Build and install the Passenger module
+	"sudo passenger-install-apache2-module". 
+  The script will complain about missing developement packages, which you'll have to install
+  Add the Passenger configuration to Apache like hinted by the script
+
+- Also load "proxy" and "proxy_http" 
+	"a2enmod proxy"
+	"a2enmod proxy_http"
+
+- Add the proxy configuration to Apache
+  Your Apache default host configuration should be in "/etc/apache2/sites-available/default"
+	ProxyRequests Off
+	ProxyPreserveHost On
+	<Location />
+		Allow from All
+		ProxyPass http://localhost:4567/
+		ProxyPassReverse http://localhost:4567/
+	</Location>
+
+Indypicdump:
+
+- Edit ipdconfig.rb
