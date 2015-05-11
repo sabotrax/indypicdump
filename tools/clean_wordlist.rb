@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with indypicdump.  If not, see <http://www.gnu.org/licenses/>.
 
-# Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
+# Copyright 2012-2015 Marcus Schommer <sabotrax@gmail.com>
 
 unless ARGV.length == 1
   puts "ARGUMENT ERROR, GIVE FILE"

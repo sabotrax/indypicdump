@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with indypicdump.  If not, see <http://www.gnu.org/licenses/>.
 
-# Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
+# Copyright 2012-2015 Marcus Schommer <sabotrax@gmail.com>
 
 $:.unshift("#{File.dirname(__FILE__)}")
 
@@ -92,13 +92,19 @@ end
 get '/picture/delete/:filename' do
   protected!
   # check params
+  # TODO
+  # move filename regex to config file
   unless params[:filename] =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
     @msg = "Something went wrong:<br /><p>Argument error.</p>"
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
   # check if picture exists
+  # TODO
+  # use IPDPicture.exists?(params[:filename]) ?
   result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE filename = ?", [params[:filename]])
   if result.empty?
+    # TODO
+    # use same message as below
     @msg = "Something went wrong:<br /><p>Picture is missing.</p>"
     halt slim :notice, :pretty => IPDConfig::RENDER_PRETTY
   end
