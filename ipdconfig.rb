@@ -55,6 +55,7 @@ module IPDConfig
   GEN_RANDOM_IDS = 200
   NOSHOW_LAST_IDS = 8
   CLIENT_TIMEOUT = 300
+  # Pictures newer than PICTURE_DISPLAY_MOD_SPAN seconds will be displayed more often
   PICTURE_DISPLAY_MOD_SPAN = 259200
   PICTURE_DISPLAY_MOD = 0.07
   PICTURE_MIN_SIZE = 400

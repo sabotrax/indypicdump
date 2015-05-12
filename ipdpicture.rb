@@ -62,9 +62,9 @@ class IPDPicture
 
       #puts IPDTest.random_distribution(1000, randnum)
 
-      # show newer pics more often
+      # show new pics more often
       span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
-      # get new pictures
+      # get new pics
       result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_sent > ?", [span])
       result.each do |row|
 	offset = row[0]
@@ -241,7 +241,7 @@ class IPDPicture
 
   ##############################
   def self.count_pictures
-    result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture")
+    result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE no_show = 0")
     return result[0][0]
   end
 

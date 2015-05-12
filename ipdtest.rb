@@ -23,10 +23,13 @@ class IPDTest
       delivery_method :test
     end
     mail = Mail.new do
-      from	"root@indypicdump.com"
-      to	"me@indypicdump.com"
-      subject	"stats please"
-      #body	"1358879033.8317907.gif password \"lala X lala\""
+      from	"schommer@localhost"
+      to	"me@localhost"
+      subject	"lala"
+      body	"301e52e7475e3eaf330e1226b7cbe25b"
+      #add_file 	"test/qualle.jpg"
+      #add_file 	"test/elefant.jpg"
+      #add_file 	"test/bengal.jpg"
       #add_file 	"test/fish1_test.jpg"
       #add_file 	"test/fish2_test.jpg"
       #add_file 	"test/1_test.png"

@@ -31,6 +31,9 @@ Indypicdump:
 
 - Edit ipdconfig.rb
 
+- Create temporary directory
+	mkdir tmp
+
 - Create link to picture directory
 	cd public
 	ln -s ../pics/ pics
