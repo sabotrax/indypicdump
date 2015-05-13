@@ -61,8 +61,8 @@ unless test
 end
 
 unless test
-  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -287,8 +287,21 @@ mail.each do |m|
 	  now = Time.now
 	  result = IPDConfig::DB_HANDLE.execute("SELECT action FROM user_request WHERE action LIKE ? AND time_created >= ? ORDER BY time_created ASC", ["remove pictures,%,#{user.nick}%", now.to_i - 129600])
 	  template = ""
+	  # TODO FIX
+	  # bei mehreren remove requests mit verschiedenen zustaenden (complete/cleared) werden falsche mails verschickt
 	  result.each do |row|
 	    if row[0] =~ /complete/
+	      keep_pictures = []
+	      picture = IPDPicture.load(row[0].split(',').last)
+	      if picture.in_group?
+		keep_pictures += IPDPicture.load_group(picture.id)
+	      else
+		keep_pictures << picture
+	      end
+	      keep_pictures.each do |p|
+		p.show!
+		p.save
+	      end
 	      template = :remove_picture_kept_pictures if template.empty?
 	      IPDRequest.remove_by_action(row[0])
 	    elsif row[0] =~ /cleared/

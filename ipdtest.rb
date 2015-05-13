@@ -24,9 +24,9 @@ class IPDTest
     end
     mail = Mail.new do
       from	"schommer@localhost"
-      to	"me@localhost"
-      subject	"lala"
-      body	"301e52e7475e3eaf330e1226b7cbe25b"
+      to	"me@indypicdump.com"
+      subject	"keep pictures"
+      #body	"PS: Include request code fc23f70bdf282b99a5b067132738e16e in reply."
       #add_file 	"test/qualle.jpg"
       #add_file 	"test/elefant.jpg"
       #add_file 	"test/bengal.jpg"
