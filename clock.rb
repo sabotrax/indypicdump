@@ -15,7 +15,7 @@
 
 # Copyright 2012-2015 Marcus Schommer <sabotrax@gmail.com>
 
-$:.unshift("#{File.dirname(__FILE__)}")
+$:.unshift("#{File.dirname(__FILE__)}/lib")
 
 require 'stalker'
 require 'ipdconfig'

@@ -16,7 +16,6 @@
 # Copyright 2012-2015 Marcus Schommer <sabotrax@gmail.com>
 
 require 'ipdhelper'
-#require 'ipddump'
 
 class IPDUser
   ##############################

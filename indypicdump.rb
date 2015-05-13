@@ -17,7 +17,7 @@
 
 # Copyright 2012 Marcus Schommer <sabotrax@gmail.com>
 
-$:.unshift("#{File.dirname(__FILE__)}")
+$:.unshift("#{File.dirname(__FILE__)}/lib")
 
 require 'mail'
 require 'RMagick'
@@ -61,8 +61,8 @@ unless test
 end
 
 unless test
-  #mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
-  mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
+  mail = Mail.find_and_delete(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc, :delete_after_find => true)
+  #mail = Mail.find(:what => :first, :count => IPDConfig::FETCH_MAILS, :order => :asc)
 else
   mail = []
   mail.push(IPDTest.gen_mail)
@@ -654,7 +654,12 @@ picstack.each do |picture|
     img.auto_orient!
     # read EXIF DateTime
     # EXIF DateTime is local time w/o time zone information
+    # DateTime works for Android and iPhones
     date = img.get_exif_by_entry('DateTime')[0][1]
+    # DateTimeOriginal is needed by Microsoft Lumia
+    unless date
+      date = img.get_exif_by_entry('DateTimeOriginal')[0][1]
+    end
     if date =~ /^\d{4}:\d\d:\d\d \d\d:\d\d:\d\d$/
       # CAUTION
       # DateTime.to_time applies the local time zone
