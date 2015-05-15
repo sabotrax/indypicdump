@@ -27,7 +27,7 @@ $:.unshift("#{File.dirname(__FILE__)}")
 #puts File.extname(filename)
 
 # 3 annotate
-#require 'RMagick' 
+#require 'rmagick' 
 
 #img = Magick::Image::read("test.jpg").first
 #text = Magick::Draw.new 
@@ -203,7 +203,7 @@ $:.unshift("#{File.dirname(__FILE__)}")
 #puts request.exists?
 
 # 21
-#require 'RMagick'
+#require 'rmagick'
 #require 'sqlite3'
 #require 'ipdconfig'
 #require 'ipderror'

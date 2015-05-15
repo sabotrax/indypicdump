@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -w
+#!/usr/bin/env ruby
 
 # This file is part of indypicdump.
 
@@ -20,7 +20,7 @@
 $:.unshift("#{File.dirname(__FILE__)}/lib")
 
 require 'mail'
-require 'RMagick'
+require 'rmagick'
 require 'sqlite3'
 require 'date'
 require 'stalker'

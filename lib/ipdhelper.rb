@@ -22,7 +22,11 @@ class Sinatra::Request
   def dump
     # user dump
     if self.path =~ /^\/picture\/show\/user\/([a-z][a-z\-]*)$(?<!-)/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", [$1.undash])
+      # TODO/CHECK
+      # SQL here simply doesn't work with ? placeholder
+      # dunno why
+      sql = "SELECT id FROM user WHERE nick = \"#{$1.undash}\""
+      result = IPDConfig::DB_HANDLE.execute(sql)
       dump = "ud" + result[0][0].to_s if result.any?
     # multi dump
     elsif self.path =~ /^\/([a-z0-9][a-z0-9\-]*)(?<!-)$/i

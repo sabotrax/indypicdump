@@ -24,10 +24,10 @@ class IPDTest
     end
     mail = Mail.new do
       from	"schommer@localhost"
-      to	"dumpt@indypicdump.com"
-      subject	"igno"
+      to	"me@indypicdump.com"
+      subject	"stats please"
       #body	"http://172.16.2.36/picture/show/detail/1431435524.0642946.jpg"
-      add_file 	"#{File.dirname(__FILE__)}/../test/marta1.jpg"
+      #add_file 	"#{File.dirname(__FILE__)}/../test/marta1.jpg"
     end
     mail.deliver
     Mail::TestMailer.deliveries.first

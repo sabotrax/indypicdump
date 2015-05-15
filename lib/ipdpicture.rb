@@ -17,7 +17,7 @@
 
 require 'sqlite3'
 require "random/online"
-require 'RMagick'
+require 'rmagick'
 
 class IPDPicture
   @random_pool = {}
@@ -30,11 +30,9 @@ class IPDPicture
 
   ##############################
   def self.get_weighted_random_id(request)
-  #def self.get_weighted_random_id(d)
     require "ipdtest"
 
     id_dump = IPDDump.dump[request.dump] || request.dump
-    #id_dump = d
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
       IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")

@@ -1,39 +1,54 @@
 Installation Guide for Debian 7.x
 
+Ruby Version:
+
+- Install rvm
+    "\curl -sSL https://get.rvm.io | bash -s stable"
+  Single user installation in your $HOME works fine
+  Visit https://rvm.io/ for more information
+
+- Install Ruby
+    "rvm install 2.0.0"
+    "rvm use 2.0.0"
+
+- Create Gemset
+    "rvm gemset create indypicdump"
+    "rvm gemset use indypicdump"
+
 Ruby Gems:
 
-- Install the needed Gems
-	"bundler install".
+- Install needed Gems
+    "bundle install"
   Bundler will complain about missing developement packages, which you'll have to install
 
 Apache:
 
 - Build and install the Passenger module
-	"sudo passenger-install-apache2-module". 
+    "sudo passenger-install-apache2-module". 
   The script will complain about missing developement packages, which you'll have to install
   Add the Passenger configuration to Apache like hinted by the script
 
-- Also load "proxy" and "proxy_http" 
-	"a2enmod proxy"
-	"a2enmod proxy_http"
+- Load modules "proxy" and "proxy_http" 
+    "a2enmod proxy"
+    "a2enmod proxy_http"
 
-- Add the proxy configuration to Apache
+- Add proxy configuration to Apache
   Your Apache default host configuration should be in "/etc/apache2/sites-available/default"
-	ProxyRequests Off
-	ProxyPreserveHost On
-	<Location />
-		Allow from All
-		ProxyPass http://localhost:4567/
-		ProxyPassReverse http://localhost:4567/
-	</Location>
+    ProxyRequests Off
+    ProxyPreserveHost On
+    <Location />
+      Allow from All
+      ProxyPass http://localhost:4567/
+      ProxyPassReverse http://localhost:4567/
+    </Location>
 
 Indypicdump:
 
-- Edit ipdconfig.rb
+- Edit lib/ipdconfig.rb
 
-- Create temporary directory
-	mkdir tmp
+- Create directories
+    mkdir {log,tmp}
 
 - Create link to picture directory
-	cd public
-	ln -s ../pics/ pics
+    cd public
+    ln -s ../pics/ pics
