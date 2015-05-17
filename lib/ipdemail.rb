@@ -20,7 +20,7 @@ class IPDEmail
   def self.exists?(address)
     result = []
     email_exists = false
-    result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
+    result = DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
     email_exists = true if result.any?
     return email_exists
   end

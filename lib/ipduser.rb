@@ -23,11 +23,11 @@ class IPDUser
     result = []
     user = nil
     if u.to_s =~ /^[1-9]\d*$/
-      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [u])
+      result = DB_HANDLE.execute("SELECT * FROM user WHERE id = ?", [u])
     elsif u =~ /^[a-z\- ]+(?<!-)$/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [u.undash])
-    elsif u =~ /#{IPDConfig::REGEX_EMAIL}/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [u])
+      result = DB_HANDLE.execute("SELECT * FROM user WHERE nick = ?", [u.undash])
+    elsif u =~ /#{REGEX_EMAIL}/i
+      result = DB_HANDLE.execute("SELECT u.id, u.nick, u.time_created, u.accept_external_messages FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address JOIN user u ON u.id = m.id_user WHERE e.address = ?", [u])
     end
     if result.any?
       user = self.new
@@ -35,7 +35,7 @@ class IPDUser
       user.nick = result[0][1]
       user.time_created = result[0][2]
       user.accept_external_messages = result[0][3]
-      email = IPDConfig::DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
+      email = DB_HANDLE.execute("SELECT e.* FROM email_address e JOIN mapping_user_email_address m JOIN user u WHERE e.id = m.id_address AND m.id_user = u.id AND u.id = ?", [user.id])
       email.each do |row|
 	user.email = row[1]
       end
@@ -86,35 +86,35 @@ class IPDUser
     raise IPDUserError, "EMAIL MISSING ERROR" if self.email.empty?
     try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction if try == 0
+      DB_HANDLE.transaction if try == 0
       if self.id == 0
-	IPDConfig::DB_HANDLE.execute("INSERT INTO user (nick, time_created, accept_external_messages) VALUES (?, ?, ?)", [self.nick, self.time_created, self.accept_external_messages])
-	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+	DB_HANDLE.execute("INSERT INTO user (nick, time_created, accept_external_messages) VALUES (?, ?, ?)", [self.nick, self.time_created, self.accept_external_messages])
+	result = DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	self.id = result[0][0]
 	self.email.each do |address|
-	  IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
-	  result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
-	  IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+	  DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, self.time_created])
+	  result = DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+	  DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
 	end
-	IPDConfig::DB_HANDLE.execute("CREATE VIEW \"ud#{self.id}\" AS SELECT * FROM picture WHERE id_user = #{self.id}")
+	DB_HANDLE.execute("CREATE VIEW \"ud#{self.id}\" AS SELECT * FROM picture WHERE id_user = #{self.id}")
       else
-	IPDConfig::DB_HANDLE.execute("UPDATE user SET nick = ?, accept_external_messages = ? WHERE id = ?", [self.nick, self.accept_external_messages, self.id])
+	DB_HANDLE.execute("UPDATE user SET nick = ?, accept_external_messages = ? WHERE id = ?", [self.nick, self.accept_external_messages, self.id])
 	# remove addresses that are no longer in the object
-	result = IPDConfig::DB_HANDLE.execute("SELECT e.id, e.address FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address WHERE m.id_user = ? ORDER BY e.id ASC", [self.id])
+	result = DB_HANDLE.execute("SELECT e.id, e.address FROM email_address e JOIN mapping_user_email_address m ON e.id = m.id_address WHERE m.id_user = ? ORDER BY e.id ASC", [self.id])
 	result.each do |row|
 	  unless self.has_email?(row[1])
-	    IPDConfig::DB_HANDLE.execute("DELETE FROM mapping_user_email_address WHERE id_user = ? AND id_address = ?", [self.id, row[0]])
-	    IPDConfig::DB_HANDLE.execute("DELETE FROM email_address WHERE id = ?", [row[0]])
+	    DB_HANDLE.execute("DELETE FROM mapping_user_email_address WHERE id_user = ? AND id_address = ?", [self.id, row[0]])
+	    DB_HANDLE.execute("DELETE FROM email_address WHERE id = ?", [row[0]])
 	  end
 	end
 	# insert new addresses
 	now = Time.now
 	self.email.each do |address|
-	  result = IPDConfig::DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
+	  result = DB_HANDLE.execute("SELECT id FROM email_address WHERE address = ?", [address])
 	  if result.empty?
-	    IPDConfig::DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, now.to_i])
-	    result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
-	    IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
+	    DB_HANDLE.execute("INSERT INTO email_address (address, time_created) VALUES (?, ?)", [address, now.to_i])
+	    result = DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+	    DB_HANDLE.execute("INSERT INTO mapping_user_email_address (id_user, id_address) VALUES (?, ?)", [self.id, result[0][0]])
 	  end
 	end
       end
@@ -122,23 +122,23 @@ class IPDUser
       sleep 1
       try += 1
       if try == 7
-        IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
+        DB_HANDLE.rollback
+        LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
     rescue SQLite3::Exception => e
-      IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
+      DB_HANDLE.rollback
+      LOG_HANDLE.fatal("DB ERROR WHILE SAVING USER #{self.email.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
-    IPDConfig::DB_HANDLE.commit
+    DB_HANDLE.commit
   end
 
   ##############################
   def has_messages?
     if self.id != 0
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - IPDConfig::MSG_SHOW_SPAN])
+      result = DB_HANDLE.execute("SELECT id FROM message WHERE id_user = ? AND time_created >= ?", [self.id, Time.now.to_i - MSG_SHOW_SPAN])
       @has_messages = true if result.any?
     end
     return @has_messages
@@ -205,7 +205,7 @@ class IPDUser
     owns_picture = false
     id_picture = IPDPicture.exists?(p)
     if id_picture
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture WHERE id = ? AND id_user = ?", [id_picture, self.id])
+      result = DB_HANDLE.execute("SELECT id FROM picture WHERE id = ? AND id_user = ?", [id_picture, self.id])
     end
     owns_picture = true if result.any?
     return owns_picture
@@ -227,19 +227,19 @@ class IPDUser
   def _gen_nick
     adjectives = []
     nouns = []
-    adjectives = File.readlines(IPDConfig::ADJECTIVES)
-    nouns = File.readlines(IPDConfig::NOUNS)
+    adjectives = File.readlines(ADJECTIVES)
+    nouns = File.readlines(NOUNS)
     max_nicks = adjectives.length * nouns.length
     # create unique nick from wordlists
     nick = ""
     i = 0
-    reserved = File.readlines(IPDConfig::RESERVED_NICKS)
+    reserved = File.readlines(RESERVED_NICKS)
     while true do
       nick = adjectives.sample.chomp + " " + nouns.sample.chomp
-      result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
+      result = DB_HANDLE.execute("SELECT id FROM user WHERE nick = ?", nick)
       break if result.empty? and !reserved.include?(nick + "\n")
       if i > max_nicks
-	IPDConfig::LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
+	LOG_HANDLE.fatal("MAX NUMBERS OF NICKS ERROR #{self.email}")
 	raise "MAX NUMBERS OF NICKS ERROR #{self.email}"
       end
       i += 1

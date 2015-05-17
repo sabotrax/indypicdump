@@ -19,6 +19,7 @@ $:.unshift("#{File.dirname(__FILE__)}/lib")
 
 require 'stalker'
 require 'ipdconfig'
+
 include Clockwork
 
 handler { |job| Stalker.enqueue(job) }

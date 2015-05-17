@@ -24,28 +24,30 @@ require 'stalker'
 require 'ipdconfig'
 require 'ipderror'
 
-result = IPDConfig::DB_HANDLE.execute("SELECT id FROM dump ORDER BY id ASC")
+include IPDConfig
+
+result = DB_HANDLE.execute("SELECT id FROM dump ORDER BY id ASC")
 result.each do |row|
   begin
-    IPDConfig::DB_HANDLE.execute("DROP VIEW \"#{row[0]}\"")
+    DB_HANDLE.execute("DROP VIEW \"#{row[0]}\"")
   rescue SQLite3::Exception => e
     puts e.message
     print "GO ON (Y/N) "
     a = gets.chomp
     break unless a =~ /y/i
   end
-  IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{row[0]}\" AS SELECT * FROM picture WHERE id_dump = #{row[0]} AND precursor = 0")
+  DB_HANDLE.execute("CREATE VIEW \"#{row[0]}\" AS SELECT * FROM picture WHERE id_dump = #{row[0]} AND precursor = 0")
 end
 
-result = IPDConfig::DB_HANDLE.execute("SELECT id FROM user ORDER BY id ASC")
+result = DB_HANDLE.execute("SELECT id FROM user ORDER BY id ASC")
 result.each do |row|
   begin
-    IPDConfig::DB_HANDLE.execute("DROP VIEW \"ud#{row[0]}\"")
+    DB_HANDLE.execute("DROP VIEW \"ud#{row[0]}\"")
   rescue SQLite3::Exception => e
     puts e.message
     print "GO ON (Y/N) "
     a = gets.chomp
     break unless a =~ /y/i
   end
-  IPDConfig::DB_HANDLE.execute("CREATE VIEW \"ud#{row[0]}\" AS SELECT * FROM picture WHERE id_user = #{row[0]} AND precursor = 0")
+  DB_HANDLE.execute("CREATE VIEW \"ud#{row[0]}\" AS SELECT * FROM picture WHERE id_user = #{row[0]} AND precursor = 0")
 end

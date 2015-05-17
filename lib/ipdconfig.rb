@@ -34,13 +34,17 @@ module IPDConfig
   LOG_LEVEL = 0
   LOG_HANDLE = Logger.new(LOG, LOG_ROTATION)
   LOG_HANDLE.level = LOG_LEVEL
+  # Access protection to admin routes
+  # (look for "/admin" in provider.rb)
   HTTP_AUTH_USER = ''
   HTTP_AUTH_PASS = ''
   RENDER_PRETTY = true
   ENVIRONMENT = :development
   RECAPTCHA_PUB_KEY = ''
   RECAPTCHA_PRIV_KEY = ''
+  # Email address we're sending as
   EMAIL_SELF = 'busybee@indypicdump.com'
+  # Reports (like about new pictures) are send to this address
   EMAIL_OPERATOR = ''
 
   # Picture

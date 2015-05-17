@@ -25,7 +25,9 @@ require 'ipdconfig'
 require 'ipderror'
 require 'ipdpicture'
 
-result = IPDConfig::DB_HANDLE.execute("SELECT p.filename FROM picture p LEFT JOIN picture_common_color pcc ON p.id = pcc.id_picture WHERE pcc.id_picture IS NULL;")
+include IPDConfig
+
+result = DB_HANDLE.execute("SELECT p.filename FROM picture p LEFT JOIN picture_common_color pcc ON p.id = pcc.id_picture WHERE pcc.id_picture IS NULL;")
 puts "PICTURES #{result.size}"
 result.each do |row|
   begin

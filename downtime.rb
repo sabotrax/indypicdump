@@ -23,9 +23,9 @@ require 'sinatra'
 require 'slim'
 require 'ipdconfig'
 
-set :environment, IPDConfig::ENVIRONMENT
+set :environment, ENVIRONMENT
 
 ##############################
 get '/*' do
-  slim :downtime, :pretty => IPDConfig::RENDER_PRETTY, :layout => false
+  slim :downtime, :pretty => RENDER_PRETTY, :layout => false
 end

@@ -26,7 +26,7 @@ class IPDDump
   def self.load_dump_map
     dump = self.dump
     return dump if dump.any?
-    result = IPDConfig::DB_HANDLE.execute("SELECT id, alias FROM dump ORDER BY id ASC")
+    result = DB_HANDLE.execute("SELECT id, alias FROM dump ORDER BY id ASC")
     result.each do |row|
       dump[row[1]] = row[0]
     end
@@ -62,11 +62,11 @@ class IPDDump
     dump = nil
     try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction if try == 0
+      DB_HANDLE.transaction if try == 0
       if d.to_s =~ /^[1-9]\d*$/
-	result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE id = ?", [d])
+	result = DB_HANDLE.execute("SELECT * FROM dump WHERE id = ?", [d])
       elsif d =~ /^[a-z\- ]+(?<!-)$/i
-	result = IPDConfig::DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [d.dash])
+	result = DB_HANDLE.execute("SELECT * FROM dump WHERE alias = ?", [d.dash])
       end
       if result.any?
 	dump = self.new
@@ -75,24 +75,24 @@ class IPDDump
 	dump.time_created = result[0][2]
 	dump.state = result[0][3]
 	dump.password = result[0][4]
-	result2 = IPDConfig::DB_HANDLE.execute("SELECT * FROM mapping_dump_user WHERE id_dump = ?", [dump.id])
+	result2 = DB_HANDLE.execute("SELECT * FROM mapping_dump_user WHERE id_dump = ?", [dump.id])
 	result2.each {|row| dump.add_user(row[1], :admin => row[2], :time_created => row[3])}
       end
     rescue SQLite3::BusyException => e
       sleep 1
       try += 1
       if try == 7
-        IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE LOADING DUMP #{d} / #{e.message} / #{e.backtrace.shift}")
+        DB_HANDLE.rollback
+        LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE LOADING DUMP #{d} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
     rescue SQLite3::Exception => e
-      IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE LOADING DUMP #{d} / #{e.message} / #{e.backtrace.shift}")
+      DB_HANDLE.rollback
+      LOG_HANDLE.fatal("DB ERROR WHILE LOADING DUMP #{d} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
-    IPDConfig::DB_HANDLE.commit
+    DB_HANDLE.commit
     return dump
   end
 
@@ -115,38 +115,38 @@ class IPDDump
     end
     try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction if try == 0
+      DB_HANDLE.transaction if try == 0
       if self.id == 0
-	IPDConfig::DB_HANDLE.execute("INSERT INTO dump (alias, time_created, state, password) VALUES (?, ?, ?, ?)", [self.alias, self.time_created, self.state, self.password])
-	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+	DB_HANDLE.execute("INSERT INTO dump (alias, time_created, state, password) VALUES (?, ?, ?, ?)", [self.alias, self.time_created, self.state, self.password])
+	result = DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	self.id = result[0][0]
-	IPDConfig::DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
+	DB_HANDLE.execute("CREATE VIEW \"#{self.id}\" AS SELECT * FROM picture WHERE id_dump = #{self.id}")
       else
-	IPDConfig::DB_HANDLE.execute("UPDATE dump SET alias = ?, state = ?, password = ? WHERE id = ?", [self.alias, self.state, self.password, self.id])
+	DB_HANDLE.execute("UPDATE dump SET alias = ?, state = ?, password = ? WHERE id = ?", [self.alias, self.state, self.password, self.id])
 	# TODO
 	# there's a chance that the dump looks empty if a view is generated between delete and insert
 	# better only add missing and remove odd entries
 	# (IPDUser#save auch?)
-	IPDConfig::DB_HANDLE.execute("DELETE FROM mapping_dump_user WHERE id_dump = ?", [self.id])
+	DB_HANDLE.execute("DELETE FROM mapping_dump_user WHERE id_dump = ?", [self.id])
       end
       self.user.each do |k, v|
-	IPDConfig::DB_HANDLE.execute("INSERT INTO mapping_dump_user (id_dump, id_user, admin, time_created) VALUES (?, ?, ?, ?)", [self.id, k, v[:admin], v[:time_created]])
+	DB_HANDLE.execute("INSERT INTO mapping_dump_user (id_dump, id_user, admin, time_created) VALUES (?, ?, ?, ?)", [self.id, k, v[:admin], v[:time_created]])
       end
     rescue SQLite3::BusyException => e
       sleep 1
       try += 1
       if try == 7
-        IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+        DB_HANDLE.rollback
+        LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
     rescue SQLite3::Exception => e
-      IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
+      DB_HANDLE.rollback
+      LOG_HANDLE.fatal("DB ERROR WHILE SAVING DUMP #{self.alias} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
-    IPDConfig::DB_HANDLE.commit
+    DB_HANDLE.commit
   end
 
   ##############################
@@ -154,7 +154,7 @@ class IPDDump
     has_user = false
     if u.to_s =~ /^[1-9]\d*$/
       has_user = true if self.user.has_key?(u)
-    elsif u =~ /#{IPDConfig::REGEX_EMAIL}/i
+    elsif u =~ /#{REGEX_EMAIL}/i
       user = IPDUser.load(u)
       has_user = true if user and self.user.has_key?(user.id)
     end

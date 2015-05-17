@@ -32,13 +32,15 @@ require 'fileutils'
 require 'ipdconfig'
 require 'ipdpicture'
 
-result = IPDConfig::DB_HANDLE.execute("SELECT id FROM picture ORDER BY id ASC")
+include IPDConfig
+
+result = DB_HANDLE.execute("SELECT id FROM picture ORDER BY id ASC")
 puts result.length.to_s + " PIC(S)"
 processed = 0
 result.each do |row|
   pic = IPDPicture.load(row[0])
   # path not set and picture in pic dir
-  if (!pic.path or pic.path == "") and File.exists?(IPDConfig::PIC_DIR + "/" + pic.filename)
+  if (!pic.path or pic.path == "") and File.exists?(PIC_DIR + "/" + pic.filename)
     # create day dir
       ts = pic.filename.match(/([0-9]+)\./)[1]
       t = Time.at(ts.to_i)
@@ -46,17 +48,17 @@ result.each do |row|
       pic.path = t2.to_i.to_s
       begin
 	# update db with new path
-	IPDConfig::DB_HANDLE.transaction
-	IPDConfig::DB_HANDLE.execute("UPDATE picture SET path = ? WHERE id = ?", [pic.path, pic.id])
+	DB_HANDLE.transaction
+	DB_HANDLE.execute("UPDATE picture SET path = ? WHERE id = ?", [pic.path, pic.id])
 	# copy picture to new path
-	Dir.mkdir(IPDConfig::PIC_DIR + "/" + pic.path) unless Dir.exists?(IPDConfig::PIC_DIR + "/" + pic.path)
-	FileUtils.cp IPDConfig::PIC_DIR + "/" + pic.filename, IPDConfig::PIC_DIR + "/" + pic.path
+	Dir.mkdir(PIC_DIR + "/" + pic.path) unless Dir.exists?(PIC_DIR + "/" + pic.path)
+	FileUtils.cp PIC_DIR + "/" + pic.filename, PIC_DIR + "/" + pic.path
 	processed += 1
       rescue Exception => e
 	puts e.inspect
-	IPDConfig::DB_HANDLE.rollback
+	DB_HANDLE.rollback
       end
-      IPDConfig::DB_HANDLE.commit
+      DB_HANDLE.commit
   end
 end
 puts processed.to_s + " PROCESSED"

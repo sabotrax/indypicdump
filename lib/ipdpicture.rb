@@ -16,7 +16,7 @@
 # Copyright 2012-2015 Marcus Schommer <sabotrax@gmail.com>
 
 require 'sqlite3'
-require "random/online"
+require 'random/online'
 require 'rmagick'
 
 class IPDPicture
@@ -35,40 +35,40 @@ class IPDPicture
     id_dump = IPDDump.dump[request.dump] || request.dump
     @random_pool[id_dump] = [] unless @random_pool.has_key?(id_dump)
     if @random_pool[id_dump].empty?
-      IPDConfig::LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
+      LOG_HANDLE.info("RANDOM POOL EMPTY DUMP #{id_dump}")
       result = []
-      result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
+      result = DB_HANDLE.execute("SELECT COUNT(*) FROM \"#{id_dump}\"")
       raise DumpEmpty, "DUMP EMPTY DUMP #{id_dump}" if result[0][0] == 0
 
       randnum = []
       begin
 	# one-picture-dumps just aren't random
 	if result[0][0] == 1
-	  (1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push([0]) }
+	  (1..GEN_RANDOM_IDS).each { randnum.push([0]) }
 	else
 	  generator = RealRand::RandomOrg.new
-	  randnum = generator.randnum(IPDConfig::GEN_RANDOM_IDS, 0, result[0][0] - 1)
+	  randnum = generator.randnum(GEN_RANDOM_IDS, 0, result[0][0] - 1)
 	end
       # TODO
       # retry? (The Ruby Programming Language, 162)
       # better use own error class vs. catchall
       rescue Exception => e
-	IPDConfig::LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
-	IPDConfig::LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
-	(1..IPDConfig::GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
+	LOG_HANDLE.error("RANDOM NUMBER FETCH ERROR #{e}")
+	LOG_HANDLE.info("USING FALLBACK RANDOM NUMBER GENERATOR")
+	(1..GEN_RANDOM_IDS).each { randnum.push(rand(result[0][0])) }
       end
 
       #puts IPDTest.random_distribution(1000, randnum)
 
       # show new pics more often
-      span = Time.now.to_i - IPDConfig::PICTURE_DISPLAY_MOD_SPAN
+      span = Time.now.to_i - PICTURE_DISPLAY_MOD_SPAN
       # get new pics
-      result = IPDConfig::DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_sent > ?", [span])
+      result = DB_HANDLE.execute("SELECT (SELECT COUNT(0) - 1 FROM \"#{id_dump}\" p1 WHERE p1.id <= p2.id) as 'rownum', filename FROM \"#{id_dump}\" p2 WHERE time_sent > ?", [span])
       result.each do |row|
 	offset = row[0]
 	# create random positions for later injection
 	weighted = []
-	(1..(IPDConfig::GEN_RANDOM_IDS * IPDConfig::PICTURE_DISPLAY_MOD).to_i).each do
+	(1..(GEN_RANDOM_IDS * PICTURE_DISPLAY_MOD).to_i).each do
 	  weighted.push(rand(randnum.length))
 	end
 	# merge
@@ -82,14 +82,14 @@ class IPDPicture
       # here we translate random numbers to picture ids
       # remove some groups (as they would be to dominant)
       # and complete the rest
-      remove_groups = (IPDConfig::GEN_RANDOM_IDS * IPDConfig::GROUP_NEGATIVE_DISPLAY_MOD).to_i
-      step = IPDConfig::GEN_RANDOM_IDS / remove_groups
+      remove_groups = (GEN_RANDOM_IDS * GROUP_NEGATIVE_DISPLAY_MOD).to_i
+      step = GEN_RANDOM_IDS / remove_groups
       # random ids with group pictures
       randid = []
       i = 0
       removed = 0
       randnum.each do |n|
-	result = IPDConfig::DB_HANDLE.execute("SELECT id, successor FROM \"#{id_dump}\" LIMIT ?, 1", [n])
+	result = DB_HANDLE.execute("SELECT id, successor FROM \"#{id_dump}\" LIMIT ?, 1", [n])
 	if result[0][1] != 0 and i >= removed * step
 	  if removed < remove_groups
 	    removed += 1
@@ -102,7 +102,7 @@ class IPDPicture
 	# get second and third picture of group
 	if result[0][1] != 0
 	  randid << result[0][1]
-	  result2 = IPDConfig::DB_HANDLE.execute("SELECT successor FROM picture WHERE id = ?", result[0][1])
+	  result2 = DB_HANDLE.execute("SELECT successor FROM picture WHERE id = ?", result[0][1])
 	  randid << result2[0][0]
 	  # TODO
 	  # raise error unless group is complete
@@ -116,8 +116,8 @@ class IPDPicture
 
   ##############################
   # - generate smart random ids
-  # so the last IPDConfig::NOSHOW_LAST_IDS won't be drawn again
-  # - this works per client with a IPDConfig::CLIENT_TIMEOUT second timeout 
+  # so the last NOSHOW_LAST_IDS won't be drawn again
+  # - this works per client with a CLIENT_TIMEOUT second timeout 
   # 
   # request = sinatra request object
   def self.get_smart_random_id(request)
@@ -145,7 +145,7 @@ class IPDPicture
 	# TODO
 	# this is expensive
 	# better add precursor earlier by making "random_id" a hash
-	result = IPDConfig::DB_HANDLE.execute("SELECT id, precursor FROM picture WHERE id = ?", [random_id])
+	result = DB_HANDLE.execute("SELECT id, precursor FROM picture WHERE id = ?", [random_id])
 	if @clients.has_key?(key) and @clients[key].has_key?(id_dump)
 	  # skip pictures with precursors
 	  if result[0][1] == @clients[key][id_dump][:last_skipped]
@@ -153,7 +153,7 @@ class IPDPicture
 	    next
 	  end
 	  if @clients[key][id_dump][:ids].include?(random_id)
-	    if i == IPDConfig::NOSHOW_LAST_IDS - 1
+	    if i == NOSHOW_LAST_IDS - 1
 	      raise BadLuck, "BAD LUCK RANDOM ID WARNING DUMP #{id_dump}"
 	    else
 	      i += 1
@@ -174,16 +174,16 @@ class IPDPicture
 	  end
 	end
 	@clients[key][id_dump][:ids].push(random_id)
-	if @clients[key][id_dump][:ids].length > IPDConfig::NOSHOW_LAST_IDS
+	if @clients[key][id_dump][:ids].length > NOSHOW_LAST_IDS
 	  @clients[key][id_dump][:ids].shift
 	end
 	break
       end
     rescue DumpEmpty => e
-      IPDConfig::LOG_HANDLE.info(e.message)
+      LOG_HANDLE.info(e.message)
       raise
     rescue BadLuck => e
-      IPDConfig::LOG_HANDLE.warn(e.message)
+      LOG_HANDLE.warn(e.message)
       @clients[key][id_dump][:ids] = []
       retry
     end
@@ -196,9 +196,10 @@ class IPDPicture
     result = []
     picture = nil
     if p.to_s =~ /^[1-9]\d*$/
-      result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [p])
+      result = DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.id = ?", [p])
     elsif p =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.filename = ?", [p])
+      #result = DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.filename = ?", [p])
+      result = DB_HANDLE.execute("SELECT p.*, d.alias FROM picture p JOIN dump d ON p.id_dump = d.id WHERE p.filename = ?", [p])
     end
     if result.any?
       picture = self.new
@@ -225,13 +226,13 @@ class IPDPicture
     # TODO
     # insert filename regex
     if p =~ /^\d+\.(\d+\.)?[a-z]{3,4}$/i
-      result = IPDConfig::DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [p])
+      result = DB_HANDLE.execute("SELECT id, path FROM picture WHERE filename = ?", [p])
     end
     if result.any?
-      if File.exists?(IPDConfig::PICTURE_DIR + "/" + result[0][1] + "/" + p)
+      if File.exists?(PICTURE_DIR + "/" + result[0][1] + "/" + p)
 	picture_exists = result[0][0]
       else
-	IPDConfig::LOG_HANDLE.error("PICTURE MISSING ERROR #{result[0][1]}/#{p} in #{caller[0]}")
+	LOG_HANDLE.error("PICTURE MISSING ERROR #{result[0][1]}/#{p} in #{caller[0]}")
       end
     end
     return picture_exists
@@ -239,7 +240,7 @@ class IPDPicture
 
   ##############################
   def self.count_pictures
-    result = IPDConfig::DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE no_show = 0")
+    result = DB_HANDLE.execute("SELECT COUNT(*) FROM picture WHERE no_show = 0")
     return result[0][0]
   end
 
@@ -251,35 +252,35 @@ class IPDPicture
     try = 0
     files = []
     begin
-      IPDConfig::DB_HANDLE.transaction if try == 0
+      DB_HANDLE.transaction if try == 0
       remove_ids.each do |id|
-	result = IPDConfig::DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [id])
+	result = DB_HANDLE.execute("SELECT path, filename FROM picture WHERE id = ?", [id])
 	raise PictureMissing, "PICTURE NOT IN DB" unless result.any?
-	IPDConfig::DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
-	IPDConfig::DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [id])
+	DB_HANDLE.execute("DELETE FROM picture WHERE id = ?", [id])
+	DB_HANDLE.execute("DELETE FROM picture_common_color WHERE id_picture = ?", [id])
 	files << result[0][0] + "/"  + result[0][1]
       end
     rescue SQLite3::BusyException => e
       sleep 1
       try += 1
       if try == 14
-        IPDConfig::DB_HANDLE.rollback
-        IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
+        DB_HANDLE.rollback
+        LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
         raise
       end
       retry
     rescue SQLite3::Exception => e
-      IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
+      DB_HANDLE.rollback
+      LOG_HANDLE.fatal("DB ERROR WHILE DELETING PICTURE IDS #{remove_ids.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
-    IPDConfig::DB_HANDLE.commit
+    DB_HANDLE.commit
     begin
       files.each do |file|
-	File.unlink(IPDConfig::PICTURE_DIR + "/" + file)
+	File.unlink(PICTURE_DIR + "/" + file)
       end
     rescue Exception => e
-      IPDConfig::LOG_HANDLE.fatal("FILE ERROR WHILE DELETING PICTURE #{files.to_s} / #{e.message} / #{e.backtrace.shift}")
+      LOG_HANDLE.fatal("FILE ERROR WHILE DELETING PICTURE #{files.to_s} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
   end
@@ -288,7 +289,7 @@ class IPDPicture
   def self._find_group(*ids)
     ids.flatten!
     ids = ids.map(&:to_i)
-    result = IPDConfig::DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE (precursor != 0 OR successor != 0) AND id = ?", [ids.last])
+    result = DB_HANDLE.execute("SELECT precursor, successor FROM picture WHERE (precursor != 0 OR successor != 0) AND id = ?", [ids.last])
     if result.any?
       if result[0][0] != 0 and !ids.include?(result[0][0])
 	ids << result[0][0]
@@ -339,7 +340,7 @@ class IPDPicture
   # returns the most common colors of a picture
   # as [[r, g, b], ..]
   def quantize
-    image = Magick::ImageList.new(IPDConfig::PICTURE_DIR + "/" + self.path + "/" + self.filename)
+    image = Magick::ImageList.new(PICTURE_DIR + "/" + self.path + "/" + self.filename)
     colors = []
     # we're looking for the 7 most common colors
     q = image.quantize(7, Magick::RGBColorspace)
@@ -364,10 +365,10 @@ class IPDPicture
   # returns
   # [] of the approximated names of the most common colors of the picture
   def approx_common_color
-    result = IPDConfig::DB_HANDLE.execute("SELECT color FROM picture_common_color WHERE id_picture = ?", [self.id])
+    result = DB_HANDLE.execute("SELECT color FROM picture_common_color WHERE id_picture = ?", [self.id])
     mcc = result[0][0].split(",")
     raise PictureCommonColorMissing if mcc.empty?
-    loc = File.readlines(IPDConfig::COLORS)
+    loc = File.readlines(COLORS)
     colors = {}
     loc.each do |line|
       a = line.split(",").map {|l| l.strip.chomp}
@@ -403,29 +404,29 @@ class IPDPicture
     end
     try = 0
     begin
-      IPDConfig::DB_HANDLE.transaction if try == 0
+      DB_HANDLE.transaction if try == 0
       if self.id == 0
-	IPDConfig::DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path, precursor, successor, no_show) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show])
-	result = IPDConfig::DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
+	DB_HANDLE.execute("INSERT INTO picture (filename, time_taken, time_sent, id_user, original_hash, id_dump, path, precursor, successor, no_show) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show])
+	result = DB_HANDLE.execute("SELECT LAST_INSERT_ROWID()")
 	self.id = result[0][0]
       else
-	IPDConfig::DB_HANDLE.execute("UPDATE picture SET filename = ?, time_taken = ?, time_sent = ?, id_user = ?, original_hash = ?, id_dump = ?, path = ?, precursor = ?, successor = ?, no_show = ? WHERE id = ?", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show, self.id])
+	DB_HANDLE.execute("UPDATE picture SET filename = ?, time_taken = ?, time_sent = ?, id_user = ?, original_hash = ?, id_dump = ?, path = ?, precursor = ?, successor = ?, no_show = ? WHERE id = ?", [self.filename, self.time_taken, self.time_sent, self.id_user, self.original_hash, self.id_dump, self.path, self.precursor, self.successor, self.no_show, self.id])
       end
     rescue SQLite3::BusyException => e
       sleep 1
       try += 1
       if try == 7
-	IPDConfig::DB_HANDLE.rollback
-	IPDConfig::LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")
+	DB_HANDLE.rollback
+	LOG_HANDLE.fatal("DB PERMANENT LOCKING ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")
 	raise
       end
       retry
     rescue SQLite3::Exception => e
-      IPDConfig::DB_HANDLE.rollback
-      IPDConfig::LOG_HANDLE.fatal("DB ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")
+      DB_HANDLE.rollback
+      LOG_HANDLE.fatal("DB ERROR WHILE SAVING PICTURE #{self.filename} / #{e.message} / #{e.backtrace.shift}")
       raise
     end
-    IPDConfig::DB_HANDLE.commit
+    DB_HANDLE.commit
   end
 
   ##############################
